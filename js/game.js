@@ -170,22 +170,49 @@ function checkIncomingChallenge(h){
   h=h||location.hash;if(!/^#challenge=/.test(h))return false;const c=parseChallenge(h);history.replaceState(null,'',location.pathname+location.search);
   if(!c){toast('That challenge link looks damaged. Ask for a fresh one.');return false}
   const m=MODES[c.mode];const sname=c.set?c.set.title:(ALL_SAMPLES.find(x=>x.id===c.id)||{}).title;
-  modal(`<h2>🤜 ${esc(c.name)} challenges you!</h2><p><b>Beat ${c.score} ${m.unit}</b> in ${m.name}<br><span class="muted">${esc(sname||'')} · ${c.time>=60?c.time/60+' min':c.time+' sec'} · ${c.diff} rivals${c.hard?' · hard mode 🌶️':''}</span></p>
+  modal(`<h2>🤜 ${esc(c.name)} challenges you!</h2><div class="ch-beat" id="chBeat"><span class="ch-beat-kicker">Beat this score</span><b>Beat ${c.score} ${m.unit}</b> in ${m.name}</div><p><span class="muted">${esc(sname||'')} · ${c.time>=60?c.time/60+' min':c.time+' sec'} · ${c.diff} rivals${c.hard?' · hard mode 🌶️':''}</span></p>
    <p class="hint">Everything is set up for you. The clock starts after the 3-2-1 countdown.</p>
    <div class="btn-row"><button class="btn btn-secondary" data-m="close">Not now</button><button class="btn btn-primary" id="acceptCh">Accept challenge</button></div>`,(o,close)=>{
     $('#acceptCh',o).onclick=()=>{close();
       if(c.set&&!S.sets.some(x=>x.id===c.id)){const st=clone(c.set);S.sets.push(st);S.seen=S.seen||[];S.seen.push(st.id)}
       S.cfg.setId=c.id;S.cfg.mode=c.mode;S.cfg.time=c.time;S.cfg.goal[c.mode]=0;S.cfg.diff=c.diff;S.cfg.hard=c.hard;save();DAILY=false;WEEK=false;SEASON=false;TOURNEY=false;
       CH={score:c.score,name:c.name};P=null;startGame()}});return true}
+function challengeQr(text,px){
+  if(typeof qrcode!=='function'||!text||text.length>1500)return null;
+  let q=null;for(const lvl of ['M','L']){try{const t=qrcode(0,lvl);t.addData(text);t.make();q=t;break}catch(e){}}
+  if(!q)return null;const n=q.getModuleCount(),m=4;let d='';
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))d+=`M${c+m},${r+m}h1v1h-1z`;
+  return `<svg class="qr ch-qr" viewBox="0 0 ${n+2*m} ${n+2*m}" width="${px}" height="${px}" shape-rendering="crispEdges" role="img" aria-label="QR code for the challenge link"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="#000"/></svg>`
+}
+function challengeInvite(g,link){
+  g=g||CURRENT_END;if(!g||!g.me)return '';
+  const un=(g.tourney?'pts':(MODES[g.mode]||{}).unit)||'';
+  const mode=g.tourney?'an all-modes tournament':((MODES[g.mode]||{}).name||'QuizBlox');
+  return 'I scored '+g.me.score+' '+un+' in '+mode+' on '+(g.set&&g.set.title||'a question set')+'. Can you beat me at QuizBlox? '+link
+}
+function copyText(text,okMsg){
+  let ok=false;try{ok=document.execCommand('copy')}catch(e){}
+  const done=()=>toast(okMsg||'Copied');
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(done,()=>ok?done():toast('Press Ctrl+C to copy'));
+  else ok?done():toast('Press Ctrl+C to copy')
+}
 function openChallenge(){
-  const g=CURRENT_END;if(!g)return;const link=challengeLink(g),un=MODES[g.mode].unit;
-  modal(`<h2>Challenge a friend</h2><p class="hint">Send this link. When your friend opens it, the same set, mode and time are loaded and they try to beat your <b>${g.me.score} ${un}</b>. Nothing is uploaded; it all travels in the link.</p>
+  const g=CURRENT_END;if(!g)return;const link=challengeLink(g),un=g.tourney?'pts':MODES[g.mode].unit,msg=challengeInvite(g,link),qr=challengeQr(link,148);
+  const back=g.ch?`<p class="hint">You just played ${esc(g.ch.name)}'s challenge. Send a rematch at your new score.</p>`:'';
+  modal(`<h2>${g.ch?'Challenge them back':'Challenge a friend'}</h2>${back}<p class="hint">Send this link. When your friend opens it, the same set, mode and time are loaded and they try to beat your <b>${g.me.score} ${un}</b>. Nothing is uploaded; it all travels in the link.</p>
+   <div class="ch-share">${qr?`<div class="ch-qr-wrap">${qr}<p class="muted">Scan to play</p></div>`:''}<div class="ch-share-main">
    <label class="sr-only" for="chLink">Challenge link</label><input class="input" id="chLink" readonly value="${esc(link)}" style="width:100%">
+   <label class="sr-only" for="chMsg">Invite message</label><textarea class="textarea" id="chMsg" rows="3" readonly style="width:100%;margin-top:8px">${esc(msg)}</textarea>
+   </div></div>
    ${link.length>2000?`<p class="hint" style="color:var(--coral-d)">This link is long (${link.length} characters) because your set is custom. Some apps may cut it off.</p>`:''}
-   <div class="btn-row"><button class="btn btn-secondary" data-m="close">Close</button><button class="btn btn-primary" id="copyCh">Copy link</button></div>`,(o)=>{
+   <div class="btn-row"><button class="btn btn-secondary" data-m="close">Close</button>${navigator.share?`<button class="btn btn-secondary" id="shareCh" type="button">Share…</button>`:''}<button class="btn btn-secondary" id="copyMsg" type="button">Copy message</button><button class="btn btn-primary" id="copyCh">Copy link</button></div>`,(o)=>{
     const inp=$('#chLink',o);inp.focus();inp.select();
-    $('#copyCh',o).onclick=()=>{inp.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}
-      if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(link).then(()=>toast('Link copied'),()=>toast(ok?'Link copied':'Press Ctrl+C to copy the selected link'));else toast(ok?'Link copied':'Press Ctrl+C to copy the selected link')}})}
+    const mark=btn=>{if(!btn)return;const old=btn.textContent;btn.textContent='Copied!';setTimeout(()=>{if(btn)btn.textContent=old},1600)};
+    $('#copyCh',o).onclick=()=>{inp.select();copyText(link,'Link copied');mark($('#copyCh',o))};
+    const cm=$('#copyMsg',o);if(cm)cm.onclick=()=>{const ta=$('#chMsg',o);if(ta){ta.focus();ta.select()}copyText(msg,'Message copied');mark(cm)};
+    const sh=$('#shareCh',o);if(sh)sh.onclick=()=>{navigator.share({title:'QuizBlox challenge',text:msg,url:link}).catch(()=>{})};
+});
+}
 /* ---------------- class mode (student side) ---------------- */
 function checkIncomingClass(h){
   h=h||location.hash;if(!/^#class=/.test(h))return false;const c=parseClassLink(h);history.replaceState(null,'',location.pathname+location.search);
@@ -850,7 +877,10 @@ const BOSSES=[
  ['🐲','Sir Snorts-a-Lot',{intro:'Sir Snorts-a-Lot snorts. A small cloud of glitter escapes.',hurt:['Sir Snorts-a-Lot sneezes sparks. Ow.','Sir Snorts-a-Lot: "Unhand my tail!"'],rage:'Sir Snorts-a-Lot is ENRAGED! The snorting is now unstoppable.',sc:'Snort Storm',dr:'Smoke Screen'}],
  ['🦖','Rexy McStompface',{intro:'Rexy McStompface stomps in. The floor files a complaint.',hurt:['Rexy tries to clap in shock. Tiny arms, big fail.','Rexy McStompface: "I felt that in my feelings."'],rage:'Rexy McStompface is ENRAGED! Stomping speed: maximum.',sc:'Stomp Shuffle',dr:'Tiny Arm Tickle'}],
  ['👾','Glitchzilla',{intro:'Glitchzilla loads… 99%… 99%… 99%… FIGHT!',hurt:['Glitchzilla flickers. "Error 404: dignity not found."','Glitchzilla lags in pain.'],rage:'Glitchzilla is ENRAGED! It is now running in turbo mode.',sc:'Pixel Scramble',dr:'Lag Spike'}],
- ['🧌','Gruff the Troll',{intro:'Gruff the Troll blocks the bridge. Tolls are paid in answers.',hurt:['Gruff the Troll: "That bridge was a rental!"','Gruff the Troll rubs his nose. It is a very big nose.'],rage:'Gruff the Troll is ENRAGED! He wants his bridge back.',sc:'Bridge Shake',dr:'Toll Booth Delay'}]];
+ ['🧌','Gruff the Troll',{intro:'Gruff the Troll blocks the bridge. Tolls are paid in answers.',hurt:['Gruff the Troll: "That bridge was a rental!"','Gruff the Troll rubs his nose. It is a very big nose.'],rage:'Gruff the Troll is ENRAGED! He wants his bridge back.',sc:'Bridge Shake',dr:'Toll Booth Delay'}],
+ ['🐙','Inky the Squid',{intro:'Inky the Squid inks first and asks questions later.',hurt:['Inky squirts a polite amount of ink.','Inky the Squid: "My tentacle! The good one!"'],rage:'Inky the Squid is ENRAGED! The ink is now extra inky.',sc:'Tentacle Shuffle',dr:'Ink Drain',fog:'Ink Cloud',pats:['fog']}],
+ ['🪨','Boulderfist',{intro:'Boulderfist rumbles in. Several pebbles file a complaint.',hurt:['Boulderfist cracks a little. Only a little.','Boulderfist: "That tickled. In a geological way."'],rage:'Boulderfist is ENRAGED! The ground has been warned.',sc:'Rubble Shuffle',dr:'Dust Drain',quake:'Stomp Quake',pats:['quake']}],
+ ['🕷️','Lady Hex',{intro:'Lady Hex curtsies. A tiny spark jumps from her crown.',hurt:['Lady Hex: "Rude. And sparkly."','Lady Hex flicks a sparkle off her sleeve.'],rage:'Lady Hex is ENRAGED! The sparkles have teeth now.',sc:'Charm Shuffle',dr:'Hourglass Drain',hex:'Hex Mark',pats:['hex']}]];
 const bossForClass=k=>BOSSES[bossIdx(k)];
 const MOVES=[{n:'Quick Jab',e:'🗡️',d:'Always hits for 25'},{n:'Mega Smash',e:'💥',d:'60% chance to hit for 65'},{n:'Power Up',e:'⚡',d:'Hit for 15. Your next attack is doubled'}];
 const BRAWL_HIT=['BONK! {b} loses {d} HP.','{b} says "ow" in a very small voice. -{d} HP.','Direct hit! {b} is questioning their life choices. -{d}.','KAPOW! -{d} HP and one bruised ego.','{b} just sneezed a tooth. -{d} HP.'],
@@ -868,18 +898,29 @@ function checkRage(){const g=G,b=g&&g.boss;if(!b||b.rage||g.bossDown||g.phase===
   const hit=b.max?b.hp<=b.max*.25:(g.endAt<Infinity&&g.endAt-gnow()<=g.time*250);
   if(!hit)return;b.rage=true;const el=$('#boss');if(el)el.classList.add('rage');const t=$('#bossE');if(t)t.setAttribute('data-rage','🔥');
   sfx('streak',6);toast(b.x.rage);live(b.x.rage+' Watch out for special attacks.')}
+function pickBossSpecial(b,q,g){
+  const canSc=q.type!=='type'&&q.type!=='tf'&&q.answers.length>2,canDr=q.limit>0&&!g.relaxed;
+  const extra=(b.x&&b.x.pats)||[];
+  if(!extra.length) return canSc&&(!canDr||Math.random()<.6)?'sc':canDr?'dr':null;
+  const pool=[];if(canSc)pool.push('sc');if(canDr)pool.push('dr');extra.forEach(p=>pool.push(p));
+  return pool.length?pool[Math.floor(Math.random()*pool.length)]:null
+}
 function bossSpecial(){const g=G,b=g.boss,q=g.q;if(!b||!b.rage||g.bossDown||!q)return;
   if(b.sn++%2)return;
-  const canSc=q.type!=='type'&&q.type!=='tf'&&q.answers.length>2,canDr=q.limit>0&&!g.relaxed;
-  const kind=canSc&&(!canDr||Math.random()<.6)?'sc':canDr?'dr':null;if(!kind)return;
-  const nm=kind==='sc'?b.x.sc:b.x.dr,el=$('#boss'),w=$('#bossWarn');
-  const say=kind==='sc'?`⚠️ ${b.n} is winding up ${nm}… answers will shuffle!`:`⚠️ ${b.n} is winding up ${nm}… time will drain!`;
+  const kind=pickBossSpecial(b,q,g);if(!kind)return;
+  const names={sc:b.x.sc,dr:b.x.dr,fog:b.x.fog,quake:b.x.quake,hex:b.x.hex};
+  const nm=names[kind]||'a special attack',el=$('#boss'),w=$('#bossWarn');
+  const say=kind==='sc'?`⚠️ ${b.n} is winding up ${nm}… answers will shuffle!`:kind==='dr'?`⚠️ ${b.n} is winding up ${nm}… time will drain!`:kind==='fog'?`⚠️ ${b.n} is winding up ${nm}… ink incoming!`:kind==='quake'?`⚠️ ${b.n} is winding up ${nm}… hold on!`:`⚠️ ${b.n} is winding up ${nm}… watch the answers!`;
   if(el)el.classList.add('warn');if(w)w.textContent=say;live(say);sfx('tick');
   schedule(1900,()=>{
     if(el)el.classList.remove('warn');if(w)w.textContent='';
     if(G!==g||g.phase!=='question'||g.q!==q)return;
     if(kind==='sc'){q.answers=shuffle(q.answers);mountQ(q,'ans');$('#answers').classList.add('scrambled');sfx('whoosh');toast(`${nm}! The answers got shuffled.`);live('Answers shuffled.')}
-    else{const left=q.limit*1000-(gnow()-g.qStart),cut=Math.max(0,Math.min(3000,left-1500));g.qStart-=cut;const f=$('#tfill');if(f){f.classList.add('zap');setTimeout(()=>f.classList.remove('zap'),700)}sfx('escape');toast(`${nm}! Time drained.`);live('Three seconds drained.')}})}
+    else if(kind==='dr'){const left=q.limit*1000-(gnow()-g.qStart),cut=Math.max(0,Math.min(3000,left-1500));g.qStart-=cut;const f=$('#tfill');if(f){f.classList.add('zap');setTimeout(()=>f.classList.remove('zap'),700)}sfx('escape');toast(`${nm}! Time drained.`);live('Three seconds drained.')}
+    else if(kind==='fog'){const a=$('#answers');if(a){a.classList.add('ink-fog');setTimeout(()=>{if(a)a.classList.remove('ink-fog')},1200)}const qc=$('#qcard');if(qc){qc.classList.add('inked');setTimeout(()=>qc.classList.remove('inked'),1200)}sfx('whoosh');toast(`${nm}! The answers hide in the ink.`);live('Answers hidden in ink for a moment.')}
+    else if(kind==='quake'){const qc=$('#qcard');if(qc){qc.classList.remove('quake');void qc.offsetWidth;qc.classList.add('quake')}if(el){el.classList.remove('quake');void el.offsetWidth;el.classList.add('quake')}sfx('chest');toast(`${nm}! The floor shook. The answers did not.`);live('The boss stomped. The answers stayed put.')}
+    else if(kind==='hex'){const btns=$$('#answers .answer');const wrong=[...btns].filter((x,i)=>q.answers[i]&&!q.answers[i].correct);const t=wrong.length?pick(wrong):btns[0];if(t){t.classList.add('hexed');setTimeout(()=>t.classList.remove('hexed'),2500)}sfx('whoosh');toast(`${nm}! A sparkle landed on one answer. It still works.`);live('One answer was hexed, but it still works.')}
+  })}
 function showBrawl(){
   if(!G||G.phase!=='feedback')return;
   G.phase='brawl';sfx('chest');
@@ -1295,4 +1336,4 @@ document.addEventListener('keydown',e=>{
   else if(!S.tour&&(!navigator.webdriver||p.get('tour')==='1'))setTimeout(startTour,500);
 })();
 window.addEventListener('hashchange',()=>{if(/^#class=/.test(location.hash)&&(!G||G.phase==='over'))checkIncomingClass();if(/^#challenge=/.test(location.hash)&&(!G||G.phase==='over'))checkIncomingChallenge()});
-window.QB={get P(){return P},pauseGame,resumeGame,get G(){return G},get S(){return S},get SC(){return SC},startGame,startStudy,startDemo,heistPos,heistKind,heistSecurity,heistStop,showHeist,slipstream,recapText,drawRecap,copyRecap,shareRecap,saveRecap,grantLuckyKey,botGold,KEY_EVERY,KEY_CAP,updateRacePack,showPass,readyPass,showCafe,showFish,rollFish,FISH,trapFocus,rocketAlt,updateTrack,updateAltitude,ALT_BANDS,noteHotStreak,showChests,endGame,readyTourney,startTourneyLeg,awardTourneyLeg,autoDiff,TOURNEY_MODES,TOURNEY_TIME,TOURNEY_PTS};
+window.QB={get P(){return P},pauseGame,resumeGame,get G(){return G},get S(){return S},get SC(){return SC},startGame,startStudy,startDemo,heistPos,heistKind,heistSecurity,heistStop,showHeist,slipstream,recapText,drawRecap,copyRecap,shareRecap,saveRecap,grantLuckyKey,botGold,KEY_EVERY,KEY_CAP,updateRacePack,showPass,readyPass,showCafe,showFish,rollFish,FISH,trapFocus,rocketAlt,updateTrack,updateAltitude,ALT_BANDS,noteHotStreak,showChests,endGame,readyTourney,startTourneyLeg,awardTourneyLeg,autoDiff,TOURNEY_MODES,TOURNEY_TIME,TOURNEY_PTS,challengeLink,challengeInvite,challengeQr,openChallenge,parseChallenge,pickBossSpecial,bossSpecial,BOSSES};
