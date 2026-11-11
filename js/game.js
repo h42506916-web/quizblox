@@ -158,7 +158,7 @@ function challengeLink(g){
   const diff=(g.diff&&g.diff!=='auto')?g.diff:(S.cfg.diff==='auto'?(typeof autoDiff==='function'?autoDiff():'normal'):(S.cfg.diff||'normal'));
   const o={i:sid,m:g.mode,t:g.time,d:['easy','normal','hard'].includes(diff)?diff:'normal',h:g.hard?1:0,s:g.me.score,n:g.me.name==='You'?'':g.me.name.slice(0,14)};
   if(!builtin)o.u=packSet(g.set);
-  return location.href.split('#')[0].split('?')[0]+'#challenge='+b64e(JSON.stringify(o))}
+  return appPath('play.html')+'#challenge='+b64e(JSON.stringify(o))}
 function parseChallenge(h){
   try{const m=/^#challenge=([A-Za-z0-9_-]+)$/.exec(h);if(!m)return null;const o=JSON.parse(b64d(m[1]));
     if(!MODES[o.m]||![30,60,120,180,300].includes(o.t)||!['easy','normal','hard'].includes(o.d))return null;
@@ -296,6 +296,14 @@ function clearJuice(){
   try{Music.hurry(false)}catch(e){}
   const b=$('#juiceBanner');if(b){clearTimeout(b._t);b.remove()}
 }
+function noteClutch(q,el){
+  if(!G||G.photo||G.phase==='over')return false;
+  const qLeft=q&&q.limit?Math.max(0,q.limit-el):Infinity;
+  const gameLeft=G.endAt<Infinity?(G.endAt-gnow())/1000:Infinity;
+  if(!((q&&q.limit>0&&qLeft<=1)||(gameLeft<=1&&gameLeft>=0)))return false;
+  juiceBanner('⏰ BUZZER BEATER!','fire');sfx('fever');
+  return true
+}
 function juiceBanner(text,cls,ms){
   ms=ms==null?1800:ms;
   live(text);
@@ -392,7 +400,7 @@ function renderBoard(){
   const rk=ps.indexOf(G.me)+1,now=gnow();
   if(G.lastRank&&G.me.score>0&&G.phase!=='countdown'&&G.phase!=='over'){
     if(rk>G.lastRank&&now-(G.lastToast||0)>4000&&ps[rk-2]){G.lastToast=now;toast(`${ps[rk-2].name} just passed you. Rude.`)}
-    else if(rk===1&&G.lastRank>1&&now-(G.lastToast||0)>4000){G.lastToast=now;toast('You took the lead! Enjoy it while it lasts.')}}
+    else if(rk===1&&G.lastRank>1&&now-(G.lastToast||0)>4000){G.lastToast=now;toast('You took the lead! Enjoy it while it lasts.');if(G.lastRank>=4){juiceBanner('🔥 COMEBACK!','fire');sfx('jackpot')}}}
   G.lastRank=rk;if(G.mode==='rocket')updateTrack();
   if(G.pass){G.players.forEach(p=>{const el=document.querySelector('.pass-score[data-pid="'+p.id+'"] b');if(el&&G.phase!=='countdown')countTo(el,p.score);const row=document.querySelector('.pass-score[data-pid="'+p.id+'"]');if(row)row.classList.toggle('on',p===G.me)});const tp=$('#turnPill');if(tp)tp.innerHTML='<span>Turn</span><b>'+esc((G.team&&G.hands&&G.hands.name)||G.me.name)+'</b>'}else{const s=$('#myScore');if(s&&G.phase!=='countdown')countTo(s,G.me.score)}
   if(G.mode==='race')updateRacePack();
@@ -461,6 +469,7 @@ function answer(i,typedIn){
     if(q.answers[k].correct)b.classList.add('right');else if(k===i)b.classList.add('wrong');else b.classList.add('dim')});
   if(ok){
     me.correct++;me.streak++;me.best=Math.max(me.best,me.streak);me.times.push(el);sfx('correct');if(me.streak>=3)setTimeout(()=>sfx('streak',me.streak),260);updateStreak();
+    if(!g.photo)noteClutch(q,el);
     if(me.streak===5)taunt(null,'lost');
     if(me.streak>=3&&me.streak%3===0){const r=$('#qcard').getBoundingClientRect();confetti(me.streak>=6?36:22,r.left+r.width/2,r.top+60,.8)}
     if(g.photo){
@@ -1336,4 +1345,4 @@ document.addEventListener('keydown',e=>{
   else if(!S.tour&&(!navigator.webdriver||p.get('tour')==='1'))setTimeout(startTour,500);
 })();
 window.addEventListener('hashchange',()=>{if(/^#class=/.test(location.hash)&&(!G||G.phase==='over'))checkIncomingClass();if(/^#challenge=/.test(location.hash)&&(!G||G.phase==='over'))checkIncomingChallenge()});
-window.QB={get P(){return P},pauseGame,resumeGame,get G(){return G},get S(){return S},get SC(){return SC},startGame,startStudy,startDemo,heistPos,heistKind,heistSecurity,heistStop,showHeist,slipstream,recapText,drawRecap,copyRecap,shareRecap,saveRecap,grantLuckyKey,botGold,KEY_EVERY,KEY_CAP,updateRacePack,showPass,readyPass,showCafe,showFish,rollFish,FISH,trapFocus,rocketAlt,updateTrack,updateAltitude,ALT_BANDS,noteHotStreak,showChests,endGame,readyTourney,startTourneyLeg,awardTourneyLeg,autoDiff,TOURNEY_MODES,TOURNEY_TIME,TOURNEY_PTS,challengeLink,challengeInvite,challengeQr,openChallenge,parseChallenge,pickBossSpecial,bossSpecial,BOSSES};
+window.QB={get P(){return P},pauseGame,resumeGame,noteClutch,appBase,appPath,showUpdateBanner,get G(){return G},get S(){return S},get SC(){return SC},startGame,startStudy,startDemo,heistPos,heistKind,heistSecurity,heistStop,showHeist,slipstream,recapText,drawRecap,copyRecap,shareRecap,saveRecap,grantLuckyKey,botGold,KEY_EVERY,KEY_CAP,updateRacePack,showPass,readyPass,showCafe,showFish,rollFish,FISH,trapFocus,rocketAlt,updateTrack,updateAltitude,ALT_BANDS,noteHotStreak,showChests,endGame,readyTourney,startTourneyLeg,awardTourneyLeg,autoDiff,TOURNEY_MODES,TOURNEY_TIME,TOURNEY_PTS,challengeLink,challengeInvite,challengeQr,openChallenge,parseChallenge,pickBossSpecial,bossSpecial,BOSSES};

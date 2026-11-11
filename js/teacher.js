@@ -45,8 +45,8 @@ function makePractice(c,rows,who){
   while(S.sets.some(x=>x.title===title))title=base.slice(0,56)+' '+(n++);
   const set={id:uid(),title,emoji:'🎯',cat:'My sets',qs};S.sets.push(set);save();return set}
 function practiceDone(set){
-  const share=location.href.split('#')[0].replace(/teacher\.html.*$/,'sets.html')+'#share='+b64e(JSON.stringify(packSet(set)));
-  const play=location.href.split('#')[0].replace(/teacher\.html.*$/,'play.html')+'?set='+encodeURIComponent(set.id);
+  const share=appPath('sets.html')+'#share='+b64e(JSON.stringify(packSet(set)));
+  const play=appPath('play.html')+'?set='+encodeURIComponent(set.id);
   modal(`<h2>Practice set ready 🎯</h2><p><b id="pdTitle">${esc(set.title)}</b> has ${set.qs.length} question${set.qs.length===1?'':'s'} and is saved in your sets.</p>
    <div class="btn-row" style="justify-content:flex-start"><a class="btn btn-primary" id="pdPlay" href="${esc(play)}">Play it now</a><a class="btn btn-secondary" id="pdSets" href="sets.html">Open my sets</a></div>
    <label class="label" for="pdShare" style="margin-top:14px">Share link <span class="muted" style="font-weight:400">– students open it to add the set to their own browser</span></label>

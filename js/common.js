@@ -14,6 +14,24 @@ const fmt=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/60)+':
 const avatarHTML=(p,px=36)=>`<span class="avatar${p.me?' me':''}" style="--s:${px}px;--bg:${p.color||'#eeecff'}" aria-hidden="true">${p.emoji||'🙂'}</span>`;
 const LETTERS=['A','B','C','D'];
 
+/* ---------- app root (file://, site root, or /quizblox/ subpath) ---------- */
+const LIVE_BASE='https://h42506916-web.github.io/quizblox/';
+function appBase(){
+  if(typeof location==='undefined')return '';
+  if(location.protocol==='file:')return location.href.replace(/[#?].*$/,'').replace(/[^/]*$/,'');
+  const p=location.pathname||'/';
+  const m=p.match(/^(.*\/quizblox)(?=\/|$)/);
+  let path;if(m)path=m[1]+'/';
+  else if(/\/$/.test(p))path=p;
+  else if(/\.[a-zA-Z0-9]+$/.test(p))path=p.replace(/[^/]*$/,'');
+  else path=p+'/';
+  return location.origin+path;
+}
+function appPath(file){return appBase()+String(file||'').replace(/^\//,'')}
+if(typeof location!=='undefined'&&location.protocol!=='file:'&&/\/quizblox$/.test(location.pathname)){
+  location.replace(location.pathname+'/'+location.search+location.hash);
+}
+
 /* ---------- built-in sample sets ---------- */
 const DEFAULT_TIME=20;
 const MODES={
@@ -692,7 +710,7 @@ function classSetFrom(id,u,k){
   const b=ALL_SAMPLES.find(y=>y.id===id);return b?clone(b):null}
 function classLink(c,base){
   const o={k:c.k,c:c.name,i:c.setId,m:c.mode,t:c.time};if(c.u)o.u=c.u;if(c.rules==='hard'||c.rules==='relaxed')o.r=c.rules;
-  return(base||location.href.split('#')[0].split('?')[0].replace(/[^\/]*$/,'')+'play.html')+'#class='+b64e(JSON.stringify(o))}
+  return(base||appPath('play.html'))+'#class='+b64e(JSON.stringify(o))}
 function parseClassLink(h){
   try{const m=/^#class=([A-Za-z0-9_-]+)$/.exec(h);if(!m)return null;const o=JSON.parse(b64d(m[1]));
     if(!/^[A-Z2-9]{4}$/.test(o.k)||!MODES[o.m]||![30,60,120,180,300].includes(o.t))return null;
@@ -716,23 +734,31 @@ function starGoal(set){
   return{sid:set.id,lvl:0,label:'★'.repeat(next),pool:set.qs.slice(),text:`Next star: ${t[0]} recent answers at ${t[1]}% (you have ${m.answered}).`}}
 
 /* ---------- installable offline app (only over http/https; file:// is untouched) ---------- */
+function showUpdateBanner(reg){
+  if(document.getElementById('updBar'))return document.getElementById('updBar');
+  const d=document.createElement('div');d.id='updBar';d.className='upd-bar';d.setAttribute('role','status');
+  d.innerHTML='<span>✨ New version available — refresh to update.</span><button class="btn btn-primary btn-sm" id="updGo" type="button">Refresh</button><button class="btn btn-ghost btn-sm" id="updLater" type="button" aria-label="Dismiss">Later</button>';
+  document.body.appendChild(d);
+  const go=()=>{const w=reg&&reg.waiting;if(!w){location.reload();return}w.postMessage({type:'SKIP_WAITING'})};
+  document.getElementById('updLater').onclick=()=>d.remove();
+  document.getElementById('updGo').onclick=()=>{const G=window.QB&&window.QB.G;if(G&&G.phase&&G.phase!=='over'&&G.started)confirmBox('Reload now?','You are in the middle of a game. Reloading ends it. You can also tap Later and update after this game.','Reload',go,false);else go()};
+  return d
+}
 (function(){
   if(!('serviceWorker' in navigator)||!/^https?:$/.test(location.protocol))return;
-  function banner(reg){
-    if(document.getElementById('updBar'))return;
-    const d=document.createElement('div');d.id='updBar';d.className='upd-bar';d.setAttribute('role','status');
-    d.innerHTML='<span>✨ A new version of QuizBlox is ready.</span><button class="btn btn-primary btn-sm" id="updGo" type="button">Reload</button><button class="btn btn-ghost btn-sm" id="updLater" type="button" aria-label="Dismiss">Later</button>';
-    document.body.appendChild(d);
-    const go=()=>{const w=reg.waiting;if(!w){location.reload();return}w.postMessage({type:'SKIP_WAITING'})};
-    document.getElementById('updLater').onclick=()=>d.remove();
-    document.getElementById('updGo').onclick=()=>{const G=window.QB&&window.QB.G;if(G&&G.phase&&G.phase!=='over'&&G.started)confirmBox('Reload now?','You are in the middle of a game. Reloading ends it. You can also tap Later and update after this game.','Reload',go,false);else go()}}
+  const banner=showUpdateBanner;
   let reloading=false;
   navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloading||!window.__hadCtl)return;reloading=true;location.reload()});
   window.addEventListener('load',()=>{window.__hadCtl=!!navigator.serviceWorker.controller;
-    navigator.serviceWorker.register('sw.js').then(reg=>{
+    const swUrl=typeof appPath==='function'?appPath('sw.js'):'sw.js';
+    const swScope=typeof appBase==='function'?appBase():'./';
+    navigator.serviceWorker.register(swUrl,{scope:swScope}).then(reg=>{
       if(reg.waiting&&navigator.serviceWorker.controller)banner(reg);
       reg.addEventListener('updatefound',()=>{const w=reg.installing;if(w)w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)banner(reg)})});
-      window.__swReg=reg}).catch(()=>{})});
+      const poke=()=>reg.update().catch(()=>{});
+      document.addEventListener('visibilitychange',()=>{if(!document.hidden)poke()});
+      setInterval(poke,30*60*1000);
+      window.__swReg=reg;window.showUpdateBanner=()=>banner(reg)}).catch(()=>{})});
   let deferred=null;
   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;const b=document.getElementById('installBtn');if(b)b.hidden=false});
   document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementById('installBtn');if(!b)return;if(deferred)b.hidden=false;

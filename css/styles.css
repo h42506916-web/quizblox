@@ -1237,3 +1237,10 @@ html.high-contrast body.season-summer{--bg:#fff;--bg-2:#f4f1e8}
 @media(prefers-reduced-motion:reduce){.answers.ink-fog::after,.answer.hexed,.q-card.quake,#qcard.quake,.boss.quake{animation:none}}
 .reduce-motion .answers.ink-fog::after,.reduce-motion .answer.hexed,.reduce-motion .q-card.quake,.reduce-motion #qcard.quake,.reduce-motion .boss.quake{animation:none}
 @media(max-width:560px){.ch-share{justify-content:center}.ch-qr{width:120px;height:120px}}
+
+/* R33: 404 page */
+.lost-page{padding:48px 0 72px;text-align:left}
+.lost-page h1{max-width:16ch}
+.lost-page .lead{max-width:42ch}
+.lost-hint{margin-top:28px;max-width:46ch}
+.lost-hint code{font-size:.95em}
