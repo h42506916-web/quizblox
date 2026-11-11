@@ -1303,3 +1303,4 @@ a.mode-tile .mode-go{font-weight:800;color:var(--brand-d);font-size:14px}
   .seg button{padding:8px 14px}
   .chips{gap:8px}
 }
+.mode-home-grid .mode-card.rocket{grid-column:auto}
