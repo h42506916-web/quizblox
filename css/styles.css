@@ -1303,4 +1303,63 @@ a.mode-tile .mode-go{font-weight:800;color:var(--brand-d);font-size:14px}
   .seg button{padding:8px 14px}
   .chips{gap:8px}
 }
+
+/* ---------- Quiz Isle home map ---------- */
+.world{padding:8px 0 56px}
+.world-head{text-align:center;margin:0 0 18px}
+.world-head h2{margin:0;font-size:clamp(26px,4vw,36px)}
+.world-map{position:relative;border-radius:36px;overflow:hidden;border:3px solid var(--ink);box-shadow:8px 8px 0 var(--ink);background:#3e8fbe}
+.map-art{display:block;width:100%;height:auto;aspect-ratio:1100/680}
+.map-spots{position:absolute;inset:0}
+.map-spot{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-78%);display:flex;flex-direction:column;align-items:center;gap:6px;width:132px;text-align:center;text-decoration:none;color:var(--ink);z-index:1;transition:transform .2s ease}
+.map-spot:hover,.map-spot:focus-visible{text-decoration:none;transform:translate(-50%,-78%) translateY(-8px) scale(1.06);z-index:3}
+.map-emoji{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font-size:28px;background:#fff;border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink);line-height:1}
+.map-spot.gold .map-emoji{background:var(--pop-tint)}
+.map-spot.race .map-emoji{background:var(--brand-tint)}
+.map-spot.heist .map-emoji{background:var(--ok-tint)}
+.map-spot.fish .map-emoji{background:#e4f2ff}
+.map-spot.cafe .map-emoji{background:#fdeede}
+.map-spot.brawl .map-emoji{background:#fde9ee}
+.map-spot.rocket .map-emoji{background:#eeecff}
+.map-label{display:flex;flex-direction:column;gap:0;background:#fff8ec;border:2px solid var(--ink);border-radius:12px;padding:4px 10px 5px;box-shadow:2px 2px 0 var(--ink);min-width:0;max-width:132px}
+.map-label b{font-family:var(--head);font-size:13px;font-weight:800;letter-spacing:-.02em;line-height:1.2}
+.map-label i{font-style:normal;font-size:11px;font-weight:700;color:var(--ink-2)}
+.map-wave{animation:mapWave 5s ease-in-out infinite alternate}
+.map-cloud{animation:mapCloud 22s linear infinite}
+.map-cloud-2{animation-duration:28s;animation-direction:reverse}
+.map-rocket-idle{animation:mapBob 2.6s ease-in-out infinite;transform-origin:center 28px}
+.map-flame{animation:mapFlicker .35s ease-in-out infinite alternate;transform-origin:center top}
+.map-steam,.map-steam-2{animation:mapSteam 2.2s ease-in-out infinite}
+.map-steam-2{animation-delay:.7s}
+.map-sparkle{animation:mapTwinkle 1.5s ease-in-out infinite}
+.map-flag{transform-origin:3px 0;animation:mapFlap 1.1s ease-in-out infinite}
+.map-boat{animation:mapBob 3.4s ease-in-out infinite}
+.map-glow{animation:mapTwinkle 1.8s ease-in-out infinite}
+.map-pond{transform-box:fill-box;transform-origin:center;animation:mapPulse 4s ease-in-out infinite}
+@keyframes mapWave{from{transform:translateX(0)}to{transform:translateX(18px)}}
+@keyframes mapCloud{from{transform:translateX(0)}to{transform:translateX(-40px)}}
+@keyframes mapBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes mapFlicker{from{transform:scaleY(1);opacity:1}to{transform:scaleY(1.25);opacity:.7}}
+@keyframes mapSteam{0%,100%{transform:translateY(0);opacity:.8}50%{transform:translateY(-8px);opacity:.2}}
+@keyframes mapTwinkle{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+@keyframes mapFlap{0%,100%{transform:skewX(0)}50%{transform:skewX(-10deg)}}
+@keyframes mapPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+@media(prefers-reduced-motion:reduce){
+  .map-wave,.map-cloud,.map-cloud-2,.map-rocket-idle,.map-flame,.map-steam,.map-steam-2,.map-sparkle,.map-flag,.map-boat,.map-glow,.map-pond{animation:none}
+  .map-spot,.map-spot:hover,.map-spot:focus-visible{transition:none;transform:translate(-50%,-78%)}
+}
+@media(max-width:640px){
+  .world{padding:0 0 40px}
+  .world-map{border:0;border-radius:0;box-shadow:none;overflow:visible;background:transparent}
+  .map-art{border:3px solid var(--ink);border-radius:24px;box-shadow:6px 6px 0 var(--ink);margin-bottom:14px}
+  .map-spots{position:static;display:grid;grid-template-columns:1fr;gap:10px}
+  .map-spot{position:static;transform:none;width:auto;flex-direction:row;gap:12px;text-align:left;background:#fff;border:2px solid var(--ink);border-radius:16px;padding:10px 12px;box-shadow:3px 3px 0 var(--ink);min-height:56px}
+  .map-spot:hover,.map-spot:focus-visible{transform:translateY(-2px)}
+  .map-label{background:transparent;border:0;box-shadow:none;padding:0;max-width:none}
+  .map-label b{font-size:16px}
+  .map-label i{font-size:13px}
+  @media(prefers-reduced-motion:reduce){
+    .map-spot,.map-spot:hover,.map-spot:focus-visible{transform:none}
+  }
+}
 .mode-home-grid .mode-card.rocket{grid-column:auto}

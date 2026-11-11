@@ -1,6 +1,5 @@
 /* QuizBlox – landing page extras */
 (function(){
-  const w=document.getElementById('dailyWrap');if(w)w.innerHTML=dailyCard();
   const h=document.querySelector('.hero-quiet');
   if(h&&!(S.games>0)&&!((S.history||[]).length)){
     const a=document.createElement('a');

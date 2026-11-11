@@ -40,8 +40,8 @@
  ],
  "shortcuts": [
   {
-   "name": "Daily mix",
-   "url": "play.html?mix=1"
+   "name": "Play",
+   "url": "play.html"
   },
   {
    "name": "Class mode",

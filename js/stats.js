@@ -47,14 +47,6 @@ function weekGlance(h){
   const wins=a=>a.filter(g=>g.rank===1).length;
   const cell=(lab,a)=>`<div class="stat"><b>${a.length?a.length:'–'}</b><span>${lab} games</span></div><div class="stat"><b>${a.length?wins(a):'–'}</b><span>${lab} wins</span></div><div class="stat"><b>${acc(a)==null?'–':acc(a)+'%'}</b><span>${lab} accuracy</span></div>`;
   return `<div class="week-glance" id="weekGlance"><div class="stats">${cell('This week',cur)}${cell('Last week',prev)}</div></div>`}
-function streakPanel(){
-  const st=currentStreak(),today=dayNum(),days=playDays();
-  const cells=[0,1,2,3,4,5,6].map(i=>{const d=today-6+i,on=days.has(d),lab=dateFromDay(d).toLocaleDateString(undefined,{weekday:'narrow'});return `<span class="streak-day${on?' on':''}${d===today?' is-today':''}" title="${esc(dateFromDay(d).toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'}))}${on?' · played':' · not yet'}">${esc(lab)}</span>`}).join('');
-  const sub=!st.n?'Play a game today to start a streak.':st.today?`Today counts. Come back tomorrow to make it ${st.n+1}.`:`Play today to keep your ${st.n}-day streak.`;
-  return `<div class="panel streak-panel" id="streakPanel" style="margin-top:24px"><h3>Play streak</h3>
-   <div class="stats" style="margin:8px 0 12px"><div class="stat"><b>${st.n}</b><span>Current streak</span></div><div class="stat"><b>${st.best||0}</b><span>Best streak</span></div></div>
-   <div class="streak-days" role="img" aria-label="The last seven days">${cells}</div>
-   <p class="muted" style="font-size:14px;margin:10px 0 0">${esc(sub)} Three days in a row unlocks the On a roll achievement.</p></div>`}
 function render(){
   const h=S.history||[];const ach=S.ach||{};
   const wins=h.filter(g=>g.rank===1).length,podiums=h.filter(g=>g.rank<=3).length;
@@ -79,7 +71,6 @@ function render(){
   <div class="panel" style="margin-top:24px"><h3>Personal bests</h3><div class="tbl-wrap"><table class="tbl" id="bestTbl"><thead><tr><th>Mode</th><th>Games</th><th>Wins</th><th>Best score</th><th>Avg accuracy</th></tr></thead><tbody>
    ${bests.map(b=>`<tr><td><span aria-hidden="true">${MODES[b.m].emoji}</span> ${esc(modeName(b.m))}</td><td>${b.n}</td><td>${b.w}</td><td>${b.n?b.top+' '+MODES[b.m].unit:'–'}</td><td>${b.n?b.acc+'%':'–'}</td></tr>`).join('')}</tbody></table></div></div>`
   :emptyHTML({title:'No games yet. The chart is bored.',body:'Play one game and this page fills up with numbers. A tournament is a nice first one: every mode, one after another.',cta:'<a class="btn btn-primary" href="play.html">Start a game</a> <a class="btn btn-secondary" href="play.html?tourney=1">All-modes tournament</a>'})}
-  ${streakPanel()}
   <div class="panel" style="margin-top:24px"><h3>Achievements <span class="muted" style="font-weight:600;font-size:16px">${unlocked} / ${ACHIEVEMENTS.length}</span></h3>
    <div class="ach-grid" id="achGrid">${ACHIEVEMENTS.map(a=>`<div class="ach ${ach[a.id]?'on':'off'}"><span class="ach-e" aria-hidden="true">${ach[a.id]?a.e:'🔒'}</span><div><b>${esc(a.n)}</b><span>${esc(a.d)}</span>${ach[a.id]?`<small>Unlocked ${new Date(ach[a.id]).toLocaleDateString()}</small>`:''}</div></div>`).join('')}</div></div>
   ${h.length?`<div class="panel" style="margin-top:24px"><h3>Recent games</h3><div class="tbl-wrap"><table class="tbl" id="recentTbl"><thead><tr><th>When</th><th>Mode</th><th>Set</th><th>Place</th><th>Score</th><th>Accuracy</th></tr></thead><tbody>

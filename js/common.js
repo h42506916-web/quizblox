@@ -190,15 +190,12 @@ const ACHIEVEMENTS=[
  {id:'cracker',e:'💎',n:'Smooth criminal',d:'Land 3 flawless vault hits in one game.',t:(c)=>c.perfects>=3},
  {id:'bigfish',e:'🦈',n:'Big catch',d:'Land a fish of 18 kg or more.',t:(c)=>c.big},
  {id:'boot',e:'👢',n:'Vintage find',d:'Reel in an old boot. Somebody has to.',t:(c)=>c.boot},
- {id:'daily',e:'📅',n:'Daily grinder',d:'Complete a daily challenge.',t:(c)=>c.daily},
  {id:'barista',e:'☕',n:'Barista',d:'Serve 5 perfect orders in one Café Rush game.',t:(c)=>c.orders>=5},
  {id:'study',e:'📘',n:'Study buddy',d:'Finish a practice session.',t:()=>false},
  {id:'hard',e:'🌶️',n:'Spicy',d:'Win a game on hard mode.',t:(c)=>c.rank===1&&c.hard},
  {id:'challenger',e:'🤜',n:'Challenge accepted',d:'Beat a friend\'s challenge link.',t:(c)=>!!c.chBeat},
- {id:'mixer',e:'🎛️',n:'Mixmaster',d:'Finish the daily mix.',t:(c)=>!!c.mix},
  {id:'comeback',e:'🚀',n:'Plot twist',d:'Win after trailing at the half-way mark.',t:(c)=>c.rank===1&&c.trailed},
- {id:'cards',e:'🃏',n:'Card sharp',d:'Finish a study-card run of 8 or more cards.',t:()=>false},
- {id:'roll',e:'📆',n:'On a roll',d:'Play on 3 days in a row.',t:(c,h)=>bestStreak(h)>=3}
+ {id:'cards',e:'🃏',n:'Card sharp',d:'Finish a study-card run of 8 or more cards.',t:()=>false}
 ];
 function recordGame(c){
   const h=S.history=S.history||[];
@@ -207,18 +204,6 @@ function recordGame(c){
   S.ach=S.ach||{};const fresh=[];
   ACHIEVEMENTS.forEach(a=>{if(!S.ach[a.id]&&a.t(c,h)){S.ach[a.id]=Date.now();fresh.push(a)}});
   save();return fresh}
-
-/* ---------- daily challenge (same pick all day, for everyone on this browser) ---------- */
-function dailyPick(){
-  const day=Math.floor((Date.now()-new Date().getTimezoneOffset()*60000)/864e5);
-  const sets=S.sets.filter(s=>s.qs&&s.qs.length);if(!sets.length)return null;const modes=Object.keys(MODES);
-  return{day,set:sets[day%sets.length],mode:modes[(day*3+1)%modes.length]}}
-function dailyCard(){
-  const d=dailyPick();if(!d)return'';const done=S.daily&&S.daily.day===d.day&&S.daily.done;const m=MODES[d.mode];
-  const href=`play.html?set=${encodeURIComponent(d.set.id)}&mode=${d.mode}&daily=1`;
-  return `<div class="daily ${done?'done':''}" id="dailyCard"><span class="daily-e" aria-hidden="true">${done?'✅':'📅'}</span>
-   <div class="daily-t"><b>Daily challenge${done?' · done!':''}</b><span>${esc(d.set.title)} · ${m.emoji} ${esc(m.name)} · 1 minute${done&&S.daily.rank?` · you placed ${S.daily.rank}${[,'st','nd','rd'][S.daily.rank]||'th'}`:''}</span></div>
-   <div class="daily-act"><a class="btn ${done?'btn-secondary':'btn-pop'} btn-sm" href="${href}">${done?'Play again':'Take it on'}</a></div></div>`}
 
 /* ---------- categories, favourites, search ---------- */
 const CATS=['Maths','Science','Humanities','Language','Fun & Culture','General','My sets'];
@@ -275,7 +260,7 @@ const TOUR=[
  {e:'👋',t:'Welcome to QuizBlox',p:'Turn any question set into a game against four cheeky bots. No sign-up, nothing leaves your browser. This takes 20 seconds.'},
  {e:'🎮',t:'Pick a set and a mode',p:'There are 30+ ready-made sets and seven modes: chests, a points race, a vault heist, fishing, a busy café, a monster brawl and a rocket race. Every correct answer unlocks that mode\'s mini-game.'},
  {e:'⌨️',t:'Answer fast, play your way',p:'Click or tap, or press 1 to 4. Press P to pause, M to mute. The 🔊 button reads a question aloud if you like.'},
- {e:'📈',t:'Learn from your misses',p:'Missed questions go into a weak-spot bank you can practise with no clocks or bots. Or flip through a set with Study cards before you play. Stats tracks bests, achievements and your play streak.'}];
+ {e:'📈',t:'Learn from your misses',p:'Missed questions go into a weak-spot bank you can practise with no clocks or bots. Or flip through a set with Study cards before you play. Stats tracks bests and achievements.'}];
 function startTour(){
   let i=0;
   const m=modal('<div id="tourBody"></div>',(o,close)=>{
@@ -442,7 +427,7 @@ function sanitizeState(d){
     if(typeof r.cat==='string'&&CATS.includes(r.cat))s.cat=r.cat;if(r.builtin&&sampleIds.has(id))s.builtin=true;o.sets.push(s)});
   o.seen=[...new Set([...(Array.isArray(d.seen)?d.seen.filter(x=>typeof x==='string').slice(0,500).map(x=>x.slice(0,40)):[]),...o.sets.map(s=>s.id)])];
   o.history=(Array.isArray(d.history)?d.history:[]).slice(-200).filter(h=>h&&typeof h==='object'&&MODES[h.mode]).map(h=>{const o={t:numIn(h.t,0,4e12,0),daily:!!h.daily,mode:h.mode,set:strIn(h.set,40),rank:numIn(h.rank,1,5,5),score:numIn(h.score,0,1e6,0),hard:!!h.hard,acc:numIn(h.acc,0,100,0),best:numIn(h.best,0,1e4,0),correct:numIn(h.correct,0,1e4,0),total:numIn(h.total,0,1e4,0),byD:Array.isArray(h.byD)&&h.byD.length===4?h.byD.map(p=>Array.isArray(p)?[numIn(p[0],0,1e4,0),numIn(p[1],0,1e4,0)]:[0,0]):undefined};const sid=strIn(h.sid,40);if(sid)o.sid=sid;if(h.tourney){o.tourney=true;if(Array.isArray(h.legs))o.legs=h.legs.slice(0,8).map(l=>l&&MODES[l.mode]?{mode:l.mode,rank:numIn(l.rank,1,5,5),score:numIn(l.score,0,1e6,0)}:null).filter(Boolean)}return o});
-  o.ach={};if(d.ach&&typeof d.ach==='object')ACHIEVEMENTS.forEach(a=>{if(Number.isFinite(Number(d.ach[a.id]))&&d.ach[a.id])o.ach[a.id]=Number(d.ach[a.id])});
+  o.ach={};if(d.ach&&typeof d.ach==='object'){ACHIEVEMENTS.forEach(a=>{if(Number.isFinite(Number(d.ach[a.id]))&&d.ach[a.id])o.ach[a.id]=Number(d.ach[a.id])});['daily','mixer','roll'].forEach(id=>{if(Number.isFinite(Number(d.ach[id]))&&d.ach[id])o.ach[id]=Number(d.ach[id])})}
   o.weak=(Array.isArray(d.weak)?d.weak:[]).slice(0,60).map(w=>{const q=cleanQ(w);if(q)q.set=strIn(w&&w.set,40);return q}).filter(Boolean);
   o.best={};if(d.best&&typeof d.best==='object')Object.keys(d.best).slice(0,600).forEach(k=>{const b=d.best[k];if(k.length<=120&&b&&typeof b==='object')o.best[k]={score:numIn(b.score,0,1e6,0),rank:numIn(b.rank,1,5,5),t:numIn(b.t,0,4e12,0)}});
   o.favs=(Array.isArray(d.favs)?d.favs:[]).filter(x=>typeof x==='string').slice(0,300).map(x=>x.slice(0,40));o.tour=!!d.tour;o.games=numIn(d.games,0,1e6,o.history.length);
@@ -497,34 +482,6 @@ function openBackup(){
         const apply=()=>{if(mode==='replace'){Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,pending)}else mergeInto(S,pending);S.lastBackup=Date.now();save();close();toast('Backup restored');setTimeout(()=>location.reload(),700)};
         if(mode==='replace')confirmBox('Replace everything?','All sets, stats and settings in this browser will be replaced by the backup.','Replace',apply);else apply()}}})}
 
-/* ---------- set of the week ---------- */
-function weekPick(now){
-  const list=(S.sets||[]).filter(s=>s.builtin&&s.qs&&s.qs.length);if(!list.length)return null;
-  const wk=Math.floor(((now==null?Date.now():now)-Date.UTC(2024,0,1))/(7*864e5));
-  return{set:list[((wk%list.length)+list.length)%list.length],week:wk}}
-const WEEK_THEMES={
-  Science:{e:'🔬',t:'Science Week',modes:['brawl','race','gold']},
-  Maths:{e:'➗',t:'Number Crunch',modes:['race','gold','cafe']},
-  Humanities:{e:'🗺️',t:'History Hunt',modes:['heist','gold','race']},
-  Language:{e:'🔤',t:'Word Play',modes:['cafe','race','gold']},
-  'Fun & Culture':{e:'🎭',t:'Story Time',modes:['gold','fish','rocket']},
-  General:{e:'💡',t:'Brain Week',modes:['race','brawl','gold']},
-  'My sets':{e:'📚',t:'Custom Week',modes:['gold','race','heist']}
-};
-function weekEvent(now){
-  const w=weekPick(now);if(!w)return null;
-  const th=WEEK_THEMES[catOf(w.set)]||WEEK_THEMES.General;
-  const mode=th.modes[((w.week%th.modes.length)+th.modes.length)%th.modes.length];
-  return{set:w.set,week:w.week,theme:th.t,emoji:th.e,mode,cat:catOf(w.set)}
-}
-function weekCard(){
-  const ev=weekEvent();if(!ev)return'';const s=ev.set,n=s.qs.length,m=MODES[ev.mode],done=S.weekly&&S.weekly.week===ev.week&&S.weekly.done;
-  const href=`play.html?set=${encodeURIComponent(s.id)}&mode=${ev.mode}&week=1`;
-  return `<div class="daily weekly${done?' done':''}" id="weekCard"><span class="daily-e" aria-hidden="true">${done?'✅':esc(ev.emoji||s.emoji||'📌')}</span>
-   <div class="daily-t"><b>Set of the week${done?' · done!':''}</b><span>${esc(ev.theme)} · ${esc(s.title)} · ${m.emoji} ${esc(m.name)} · ${n} questions${done&&S.weekly.rank?` · you placed ${S.weekly.rank}${[,'st','nd','rd'][S.weekly.rank]||'th'}`:''}</span></div>
-   <div class="daily-act"><a class="btn ${done?'btn-secondary':'btn-pop'} btn-sm" id="weekPlay" href="${href}">${done?'Play again':'Play this week\'s event'}</a></div></div>`}
-
-
 /* ---------- summer holidays season (Nov–Jan, Australia) ---------- */
 function inSummerSeason(now){const d=now==null?new Date():new Date(now);const m=d.getMonth();return m===10||m===11||m===0}
 function seasonEvent(now){
@@ -547,75 +504,6 @@ function applySeason(now){
   if(mount)mount.innerHTML=on?seasonCard():'';
 }
 
-/* ---------- question of the day (same pick all day, local date) ---------- */
-function qotdPick(now){
-  const day=now==null?dayNum():dayOf(now);
-  const pool=[];
-  (S.sets||[]).forEach(s=>{
-    if(!s||!s.builtin||!s.qs)return;
-    s.qs.forEach((raw,i)=>{if(cleanQ(raw))pool.push({sid:s.id,qi:i})});
-  });
-  if(!pool.length)return null;
-  const i=((Math.imul(day,1103515245)+12345)>>>0)%pool.length;
-  const p=pool[i],set=S.sets.find(s=>s.id===p.sid);if(!set)return null;
-  return{day,set,qi:p.qi,raw:set.qs[p.qi]};
-}
-function qotdDone(pick){const d=S.qotd;return !!(pick&&d&&d.day===pick.day&&d.answered)}
-function qotdCard(){
-  const ev=qotdPick();if(!ev)return'';
-  const q=buildQ(ev.raw,false),done=qotdDone(ev),ok=done&&S.qotd.ok;
-  const right=rightText(q);
-  const pic=q.pic?`<div class="qotd-pic" aria-hidden="true">${esc(q.pic)}</div>`:'';
-  let body;
-  if(q.type==='type'){
-    body=done?`<p class="qotd-type-done">Answer: <b>${esc(right)}</b></p>`
-      :`<form class="qotd-type" id="qotdType" autocomplete="off"><label class="sr-only" for="qotdIn">Your answer</label><input class="input" id="qotdIn" type="text" maxlength="80" placeholder="Type your answer…" autocapitalize="off" autocomplete="off" spellcheck="false"><button class="btn btn-primary btn-sm" type="submit" id="qotdGo">Check</button></form>`;
-  }else{
-    body=`<div class="qotd-answers ${q.type==='tf'?'tf':''}" id="qotdAns">${q.answers.map((a,i)=>{
-      const mark=done?(a.correct?'right':(ok?'':'dim')):'';
-      const tag=q.type==='tf'?(i?'False':'True'):'ABCD'[i];
-      return `<button type="button" class="qotd-a ${mark}" data-qotd="${i}" ${done?'disabled':''}><span class="badge">${tag}</span><span class="t">${esc(a.t)}</span></button>`;
-    }).join('')}</div>`;
-  }
-  const fb=done?(ok?`Nice one. That's today's question.`:`The answer was “${right}”. Tomorrow brings a new one.`)
-    :'One question, no timer, no bots. Just a little daily spark.';
-  const href='play.html?set='+encodeURIComponent(ev.set.id);
-  return `<div class="qotd-card${done?' done':''}${done&&ok?' ok':''}${done&&!ok?' no':''}" id="qotdCard">
-    <div class="qotd-kicker"><span class="qotd-e" aria-hidden="true">💡</span> Question of the day${done?(ok?' · nailed it':' · seen it'):''}</div>
-    <p class="qotd-from">From ${esc(ev.set.emoji||'📚')} ${esc(ev.set.title)}</p>
-    ${pic}<h3 class="qotd-q" id="qotdQ">${esc(q.text)}</h3>
-    ${body}
-    <p class="qotd-fb" id="qotdFb">${esc(fb)}</p>
-    <div class="qotd-act"><a class="btn btn-secondary btn-sm" href="${href}">Play this set</a></div>
-  </div>`;
-}
-function answerQotd(i){
-  const ev=qotdPick();if(!ev||qotdDone(ev))return;
-  const q=buildQ(ev.raw,false);
-  if(q.type==='type')return;
-  const ok=!!(q.answers[i]&&q.answers[i].correct);
-  S.qotd={day:ev.day,answered:true,ok};save();
-  try{sfx(ok?'correct':'wrong')}catch(e){}
-  toast(ok?'Nailed the question of the day!':'Tomorrow is another question.');
-  renderQotd();
-}
-function answerQotdTyped(){
-  const ev=qotdPick();if(!ev||qotdDone(ev))return;
-  const q=buildQ(ev.raw,false);if(q.type!=='type')return;
-  const inp=document.getElementById('qotdIn');const typed=inp?inp.value:'';
-  const ok=matchTyped(typed,q.accept)>0;
-  S.qotd={day:ev.day,answered:true,ok};save();
-  try{sfx(ok?'correct':'wrong')}catch(e){}
-  toast(ok?'Nailed the question of the day!':'The answer is revealed below.');
-  renderQotd();
-}
-function renderQotd(el){el=el||document.getElementById('qotdMount');if(!el)return;el.innerHTML=qotdCard()}
-function bindQotd(el){
-  el=el||document.getElementById('qotdMount');if(!el||el._bound)return;el._bound=true;
-  el.addEventListener('click',e=>{const b=e.target.closest('[data-qotd]');if(!b||b.disabled)return;answerQotd(+b.dataset.qotd)});
-  el.addEventListener('submit',e=>{if(e.target&&e.target.id==='qotdType'){e.preventDefault();answerQotdTyped()}});
-}
-
 /* ---------- mastery stars (from per-level accuracy on each set) ---------- */
 function recMast(sid,d,ok){if(!sid)return;S.mast=S.mast||{};const m=S.mast[sid]||(S.mast[sid]=[[0,0],[0,0],[0,0],[0,0]]);const p=m[d>=1&&d<=3?d:0];p[1]++;if(ok)p[0]++;if(p[1]>60){p[0]=Math.round(p[0]/2);p[1]=Math.round(p[1]/2)}}
 /* A level is "mastered" at 75%+ over at least 4 recent answers. Levelled sets earn a star per mastered level (scaled to 3).
@@ -636,10 +524,6 @@ function starsHTML(s){
   const m=masteryOf(s);const label=m.answered?`Mastery: ${m.stars} of 3 stars. ${m.tip}`:'Mastery: not played yet. Answer questions at each level to earn stars.';
   return `<span class="mstars s${m.stars}${m.answered?'':' none'}" role="img" aria-label="${esc(label)}" title="${esc(label)}">${'★'.repeat(m.stars)}${'☆'.repeat(3-m.stars)}</span>`}
 
-/* ---------- daily mix: a quick ramp of questions drawn from many sets and all levels ---------- */
-function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-const MIX_PLAN=[1,1,1,1,2,2,2,2,2,3,3,3];
-const MIX_MODE='race',MIX_TIME=90;
 function dayNum(){return Math.floor((Date.now()-new Date().getTimezoneOffset()*60000)/864e5)}
 function dayOf(t){t=Number(t)||0;return Math.floor((t-new Date(t).getTimezoneOffset()*60000)/864e5)}
 function playDays(h){return new Set((h||S.history||[]).map(g=>dayOf(g.t)))}
@@ -647,38 +531,6 @@ function bestStreak(h){const days=[...playDays(h)].sort((a,b)=>a-b);let best=0,r
 function currentStreak(h){const days=[...playDays(h)].sort((a,b)=>b-a),today=dayNum();if(!days.length||days[0]<today-1)return{n:0,alive:false,today:false,best:bestStreak(h)};let n=0,expect=days[0];for(const d of days){if(d===expect){n++;expect--}else if(d<expect)break}return{n,alive:true,today:days[0]===today,best:bestStreak(h)}}
 function dateFromDay(d){return new Date(d*864e5+new Date().getTimezoneOffset()*60000)}
 function unlockAch(id){const a=ACHIEVEMENTS.find(x=>x.id===id);if(!a)return false;S.ach=S.ach||{};if(S.ach[id])return false;S.ach[id]=Date.now();save();setTimeout(()=>toast('Achievement unlocked: '+a.e+' '+a.n),500);return true}
-function streakCard(){
-  const st=currentStreak(),today=dayNum(),days=playDays();
-  const cells=[0,1,2,3,4,5,6].map(i=>{const d=today-6+i,on=days.has(d),lab=dateFromDay(d).toLocaleDateString(undefined,{weekday:'narrow'});return `<span class="streak-day${on?' on':''}${d===today?' is-today':''}" title="${esc(dateFromDay(d).toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'}))}${on?' · played':' · not yet'}">${esc(lab)}</span>`}).join('');
-  const title=st.n?`🔥 ${st.n}-day streak`:'🔥 Play streak';
-  const sub=!st.n?'Play a game today to start a streak.':st.today?(st.n===1?'Nice. Come back tomorrow to make it 2.':`Nice. Come back tomorrow to make it ${st.n+1}.`):`Play today to keep your ${st.n}-day streak.`;
-  return `<div class="daily streak" id="streakCard"><span class="daily-e" aria-hidden="true">🔥</span>
-   <div class="daily-t"><b>${title}${st.best>st.n?` <span class="muted">· best ${st.best}</span>`:''}</b><span>${esc(sub)}</span><div class="streak-days" role="img" aria-label="The last seven days. ${st.n?st.n+' day streak'+ (st.today?' including today':', play today to keep it'):'No current streak.'}">${cells}</div></div>
-   <div class="daily-act"><a class="btn ${st.today?'btn-secondary':'btn-pop'} btn-sm" href="play.html">${st.today?'Play again':'Play today'}</a></div></div>`}
-(function grantRoll(){try{if(S.ach&&!S.ach.roll&&bestStreak(S.history)>=3){S.ach.roll=Date.now();save()}}catch(e){}})();
-function buildMix(seed,sets){
-  const rng=mulberry(seed|0),list=(sets||S.sets).filter(s=>s.qs&&s.qs.length);
-  const pool={1:[],2:[],3:[]};list.forEach(s=>s.qs.forEach(q=>{pool[q.d||2].push({q,s})}));
-  const used=new Set(),per={},out=[];
-  const take=lvl=>{
-    for(const L of [lvl,lvl===1?2:lvl===3?2:1,lvl===1?3:lvl===3?1:3]){
-      const cand=pool[L].filter(x=>!used.has(x.q.q)&&(per[x.s.id]||0)<2);if(!cand.length)continue;
-      const c=cand[Math.floor(rng()*cand.length)];used.add(c.q.q);per[c.s.id]=(per[c.s.id]||0)+1;return Object.assign(clone(c.q),{d:c.q.d||2,_sid:c.s.id,_st:c.s.title})}
-    return null};
-  MIX_PLAN.forEach(l=>{const q=take(l);if(q)out.push(q)});
-  return out}
-function mixSet(rand){
-  let qs;
-  if(rand)qs=buildMix(Math.floor(Math.random()*2e9));
-  else{const d=dayNum();S.mix=S.mix||{};if(!S.mix.qs||S.mix.day!==d){S.mix={day:d,done:false,qs:buildMix(d*7919+13)};save()}qs=S.mix.qs}
-  if(!qs||!qs.length)return null;
-  return{id:'mix-daily',title:rand?'Random mix':'Daily mix',emoji:'🎛️',qs,mix:true,ordered:true}}
-function mixCard(){
-  const m=mixSet(false);if(!m)return'';const d=dayNum(),done=S.mix&&S.mix.day===d&&S.mix.done;
-  const n=new Set(m.qs.map(q=>q._sid)).size;
-  return `<div class="daily mix${done?' done':''}" id="mixCard"><span class="daily-e" aria-hidden="true">${done?'✅':'🎛️'}</span>
-   <div class="daily-t"><b>Daily mix${done?' · done!':''}</b><span>${m.qs.length} questions from ${n} sets, Easy → Hard · ${MODES[MIX_MODE].emoji} ${MODES[MIX_MODE].name}, ${MIX_TIME/60} min${done&&S.mix.rank?` · you placed ${S.mix.rank}${[,'st','nd','rd'][S.mix.rank]||'th'}`:''}</span></div>
-   <div class="daily-act"><a class="btn ${done?'btn-secondary':'btn-pop'} btn-sm" id="mixPlay" href="play.html?mix=1">${done?'Play again':'Quick play'}</a><a class="mix-rand" id="mixRand" href="play.html?mix=rand">Random mix</a></div></div>`}
 
 /* ---------- class mode: link for students, result code for teachers (all offline) ---------- */
 const CLASS_AL='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';

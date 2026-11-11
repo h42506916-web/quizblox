@@ -1,6 +1,6 @@
 /* QuizBlox – play page: setup, game engine (Gold Quest / Quiz Race), end screen */
 const view=$('#view');
-let G=null,DAILY=false,WEEK=false,SEASON=false,TOURNEY=false;
+let G=null,SEASON=false,TOURNEY=false;
 const ICON={
   play:'<svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M6 4l10 6-10 6z"/></svg>'
 };
@@ -16,11 +16,9 @@ function renderSetup(){
   const more=!!window.__moreOpen||!!c.passPlay||!!c.hard||!!TOURNEY;
   const extras=[
     '<div id="seasonMount">'+((typeof seasonCard==='function'&&seasonCard())||'')+'</div>',
-    (typeof tourneyCard==='function'&&tourneyCard())||'',
-    '<div id="qotdMount">'+(typeof qotdCard==='function'?qotdCard():'')+'</div>',
-    mixCard(),weekCard(),streakCard()
+    (typeof tourneyCard==='function'&&tourneyCard())||''
   ].join('');
-  const note=DAILY?'<p class="daily-note"><b>Daily challenge loaded.</b> Everything is set: just hit Let\'s go. Change anything and it becomes a regular game.</p>':WEEK?'<p class="daily-note week-note"><b>This week\'s event is loaded.</b> Set, mode and a 3-minute clock are ready. Change anything and it becomes a regular game.</p>':SEASON?'<p class="daily-note season-note"><b>Summer holidays race is loaded.</b> Summer Holidays and a 3-minute Quiz Race are ready. Change anything and it becomes a regular game.</p>':TOURNEY?'<p class="daily-note tourney-note"><b>All-modes tournament is loaded.</b> All seven modes, 30 seconds each, same rivals all the way. Placement points decide it. Change anything and it becomes a regular game.</p>':'';
+  const note=SEASON?'<p class="daily-note season-note"><b>Summer holidays race is loaded.</b> Summer Holidays and a 3-minute Quiz Race are ready. Change anything and it becomes a regular game.</p>':TOURNEY?'<p class="daily-note tourney-note"><b>All-modes tournament is loaded.</b> All seven modes, 30 seconds each, same rivals all the way. Placement points decide it. Change anything and it becomes a regular game.</p>':'';
   view.innerHTML=`<div class="page-head"><h1>Let's <span class="hl">play</span>.</h1><p>${c.passPlay?(c.passTeam?'Two players, one score. Pass the device and take on the bots together.':'Two players, one device. Answer a question, then pass it over. No bots — just you and a friend.'):'Pick a set, pick a mode, then start. Four bots are already warming up.'}</p>${note}<div class="play-extras" id="playExtras">${extras}</div></div>
   <div class="setup-flow page-body">
    <section class="panel setup-step" id="stepSet">
@@ -52,7 +50,7 @@ function renderSetup(){
        <details class="rivals"${window.__rivOpen?' open':''}><summary>Meet the rivals</summary><ul>${BOTS.map(b=>`<li><span class="r-e" aria-hidden="true">${b.emoji}</span><span><b>${esc(b.name)}</b> ${esc(b.blurb)}</span></li>`).join('')}</ul></details></div>
       <div class="group"><label class="label" for="nameIn">Your name &amp; avatar</label><div class="btn-row name-row"><input class="input" id="nameIn" maxlength="14" value="${esc(S.name)}" placeholder="Your legendary name"><div class="seg emoji" role="group" aria-label="Choose avatar">${MY_EMOJIS.map(e=>`<button class="${S.emoji===e?'on':''}" aria-pressed="${S.emoji===e}" data-act="emoji" data-v="${e}" aria-label="Avatar ${e}">${e}</button>`).join('')}</div></div></div>
       <div class="group" id="passGroup"><label class="pass-toggle" for="passChk"><input type="checkbox" id="passChk"${c.passPlay?' checked':''}> Pass &amp; Play <span class="muted">– two players, one device</span></label>
-       <p class="hint" style="margin:8px 0 0">Take turns on this screen. After each question, a prompt tells you to pass the device. Daily, weekly, class, demo, tournament and challenge games stay one-player.</p>
+       <p class="hint" style="margin:8px 0 0">Take turns on this screen. After each question, a prompt tells you to pass the device. Class, demo, tournament and challenge games stay one-player.</p>
        <div id="passFields"${c.passPlay?'':' hidden'}><label class="label" for="p2Name">Player 2 name &amp; avatar</label><div class="btn-row name-row"><input class="input" id="p2Name" maxlength="14" value="${esc((S.p2&&S.p2.name)||'Player 2')}" placeholder="Player 2"><div class="seg emoji" role="group" aria-label="Player 2 avatar">${MY_EMOJIS.map(e=>`<button class="${((S.p2&&S.p2.emoji)||'🐼')===e?'on':''}" aria-pressed="${((S.p2&&S.p2.emoji)||'🐼')===e}" data-act="p2emoji" data-v="${e}" aria-label="Player 2 avatar ${e}">${e}</button>`).join('')}</div></div>
        <label class="pass-toggle" for="teamChk" style="margin-top:12px"><input type="checkbox" id="teamChk"${c.passTeam?' checked':''}> Team up against the bots</label>
        <p class="hint" style="margin:8px 0 0">Share one score and take turns. The four rivals still play. Leave this off to play against each other.</p></div></div>
@@ -77,7 +75,6 @@ function renderSetup(){
   const si=$('#setSearch');if(si){si.oninput=e=>{FILT.q=e.target.value;renderSetGrid()};renderSetGrid()}
   const g2=$('#setGrid .many');if(g2&&window.__gridScroll)g2.scrollTop=window.__gridScroll;
   const mb=$('#moreBtn');if(mb)mb.onclick=()=>{window.__moreOpen=!more;renderSetup();const el=$('#moreOpts');if(el&&window.__moreOpen)el.scrollIntoView({block:'nearest'})};
-  const qm=$('#qotdMount');if(qm&&typeof bindQotd==='function')bindQotd(qm);
 }
 function goalBlock(set){const g=starGoal(set);
   if(!g)return `<p class="goal-hint" id="goalHint">★★★ All stars earned on this set. Nicely done!</p>`;
@@ -200,7 +197,7 @@ function checkIncomingChallenge(h){
    <div class="btn-row"><button class="btn btn-secondary" data-m="close">Not now</button><button class="btn btn-primary" id="acceptCh">Accept challenge</button></div>`,(o,close)=>{
     $('#acceptCh',o).onclick=()=>{close();
       if(c.set&&!S.sets.some(x=>x.id===c.id)){const st=clone(c.set);S.sets.push(st);S.seen=S.seen||[];S.seen.push(st.id)}
-      S.cfg.setId=c.id;S.cfg.mode=c.mode;S.cfg.time=c.time;S.cfg.goal[c.mode]=0;S.cfg.diff=c.diff;S.cfg.hard=c.hard;save();DAILY=false;WEEK=false;SEASON=false;TOURNEY=false;
+      S.cfg.setId=c.id;S.cfg.mode=c.mode;S.cfg.time=c.time;S.cfg.goal[c.mode]=0;S.cfg.diff=c.diff;S.cfg.hard=c.hard;save();SEASON=false;TOURNEY=false;
       CH={score:c.score,name:c.name};P=null;startGame()}});return true}
 function challengeQr(text,px){
   if(typeof qrcode!=='function'||!text||text.length>1500)return null;
@@ -248,14 +245,13 @@ function checkIncomingClass(h){
    <p class="hint">Play one game. At the end you get a short result code to send back to your teacher. Nothing is uploaded: your score travels inside the code.</p>
    <div class="btn-row"><button class="btn btn-secondary" data-m="close">Not now</button><button class="btn btn-primary" id="startCl">Start the challenge</button></div>`,(o,close)=>{
     const go=()=>{const nm=plainName($('#clName',o).value);if(!nm){toast('Type your name first so your teacher knows it is you');$('#clName',o).focus();return}
-      S.name=nm;save();close();DAILY=false;WEEK=false;SEASON=false;TOURNEY=false;CH=null;P=null;startGame({tag:'class',set:c.set,mode:c.mode,time:c.time,goal:0,hard:c.rules==='hard',relaxed:c.rules==='relaxed',rules:c.rules,cl:{k:c.k,name:c.name}})};
+      S.name=nm;save();close();SEASON=false;TOURNEY=false;CH=null;P=null;startGame({tag:'class',set:c.set,mode:c.mode,time:c.time,goal:0,hard:c.rules==='hard',relaxed:c.rules==='relaxed',rules:c.rules,cl:{k:c.k,name:c.name}})};
     $('#startCl',o).onclick=go;$('#clName',o).addEventListener('keydown',e=>{if(e.key==='Enter')go()});$('#clName',o).focus()});return true}
 function classPanel(g){
   const me=g.me,n=g.set.qs.length,ql=g.qlog||{};const seen=n<=CLASS_QMAX?Array.from({length:n},(_,i)=>ql[i]?1:0):null,miss=seen?Array.from({length:n},(_,i)=>ql[i]===2?1:0):null;const code=makeClassCode(g.ov.cl.k,me.name,me.score,me.correct,me.total,me.best,seen,miss);
   return `<div class="class-code" id="classPanel"><h3>🏫 Your result code</h3><p class="hint" style="margin:0 0 10px">Send this code to your teacher (paste it into chat, email or a note). It holds your name, score and accuracy for <b>${esc(g.ov.cl.name)}</b>.</p>
    <label class="sr-only" for="clCode">Result code</label><input class="input" id="clCode" readonly value="${esc(code)}" style="width:100%;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px">
    <div class="btn-row" style="margin-top:10px"><button class="btn btn-primary btn-sm" data-act="copycode" id="copyCode">Copy code</button></div></div>`}
-function mixOv(rand){const set=mixSet(rand);return set?{tag:'mix',rand:!!rand,set,mode:MIX_MODE,time:MIX_TIME,goal:0}:null}
 function showCoach(msg,key){
   if(!G||!G.demo)return;
   G._coach=G._coach||{};if(key&&G._coach[key])return;if(key)G._coach[key]=true;
@@ -290,9 +286,9 @@ function startGame(ov){
   const bots=shuffle(BOTS).slice(0,4).map((b0,i)=>({id:'b'+i,bot:true,name:b0.name,emoji:b0.emoji,color:b0.color,blurb:b0.blurb,p:b0.p,score:0,prev:0,streak:0,keys:0,acc:Math.min(.95,(.5+Math.random()*.35)*d.a+b0.p.accAdd),speed:(.75+Math.random()*.6)*d.s*b0.p.spd,next:0}));
   const me={id:'me',me:true,human:true,name:(S.name||'You').trim()||'You',emoji:S.emoji||'😎',color:MY_COLORS[S.emoji]||'#ffe08a',score:0,prev:0,streak:0,best:0,correct:0,total:0,times:[],keys:0};
   const now=0;
-  const wasDaily=DAILY;DAILY=false;const wasWeekly=WEEK;WEEK=false;SEASON=false;const ch=CH;CH=null;
+  SEASON=false;const ch=CH;CH=null;
   const wantPass=!!((ov&&ov.pass)||(!ov&&S.cfg.passPlay));
-  const pass=wantPass&&!wasDaily&&!wasWeekly&&!ch&&!(ov&&(ov.demo||ov.cl||ov.tag==='mix'||ov.tag==='class'||ov.tag==='tourney'));
+  const pass=wantPass&&!ch&&!(ov&&(ov.demo||ov.cl||ov.tag==='class'||ov.tag==='tourney'));
   const team=pass&&!!((ov&&ov.team)||(!ov&&S.cfg.passTeam));
   let botList=bots,players;
   const p2e=(S.p2&&MY_EMOJIS.includes(S.p2.emoji))?S.p2.emoji:'🐼';
@@ -301,7 +297,7 @@ function startGame(ov){
   if(pass&&team){me.team=true;me.mateName=p2name;me.soloName=me.name;me.name=me.name+' & '+p2name;botList=bots;players=[me,...bots]}
   else if(pass){const p2={id:'p2',me:false,human:true,name:p2name,emoji:p2e,color:MY_COLORS[p2e]||'#ececf2',score:0,prev:0,streak:0,best:0,correct:0,total:0,times:[],keys:0};botList=[];players=[me,p2]}
   else players=[me,...bots];
-  G={ov,relaxed:!!(S.settings.noTimer||(ov&&ov.relaxed)),daily:wasDaily,weekly:wasWeekly,ch,hard:!!c.hard,diff:resolvedDiff,autoDiff:c.diff==='auto',leader:null,mode:c.mode,set,qs:set.ordered?set.qs.slice():shuffle(set.qs),qi:-1,nq:0,me,bots:botList,players,pass,team,mates:pass?mates:null,hands:pass?mates[0]:null,phase:'countdown',start:now,endAt:Infinity,goal:c.goal[c.mode]||0,timeouts:[],queue:[],pt:0,paused:false,started:false,dirty:true,timer:null,time:c.time};const _pb=bestOf(set.id,c.mode,c.time,G.hard,G.relaxed);G.beat=_pb?_pb.score:0;G.beatHit=false;G.demo=!!(ov&&ov.demo);
+  G={ov,relaxed:!!(S.settings.noTimer||(ov&&ov.relaxed)),ch,hard:!!c.hard,diff:resolvedDiff,autoDiff:c.diff==='auto',leader:null,mode:c.mode,set,qs:set.ordered?set.qs.slice():shuffle(set.qs),qi:-1,nq:0,me,bots:botList,players,pass,team,mates:pass?mates:null,hands:pass?mates[0]:null,phase:'countdown',start:now,endAt:Infinity,goal:c.goal[c.mode]||0,timeouts:[],queue:[],pt:0,paused:false,started:false,dirty:true,timer:null,time:c.time};const _pb=bestOf(set.id,c.mode,c.time,G.hard,G.relaxed);G.beat=_pb?_pb.score:0;G.beatHit=false;G.demo=!!(ov&&ov.demo);
   if(c.mode==='brawl'){const bb=ov&&ov.cl?bossForClass(ov.cl.k):pick(BOSSES);G.boss={max:G.goal||0,hp:G.goal||0,e:bb[0],n:bb[1],x:bb[2],sn:0}}
   if(ov&&ov.tag==='tourney'){G.tourney={modes:ov.modes.slice(),i:0,pts:{},legs:[],time:ov.time||TOURNEY_TIME};G.players.forEach(p=>G.tourney.pts[p.id]=0);G.goal=0;G.time=G.tourney.time;G.beat=0;G.beatHit=false}
   renderGameShell();if(G.mode==='rocket'){trackBar();const gg=G;schedule(900,()=>{if(G===gg)toast(pick(ROCKET_INTRO))})}if(G.boss){bossBar();const gg=G;schedule(900,()=>{if(G===gg&&G.boss)toast(G.boss.x.intro)})}sfx('click');window.scrollTo(0,0);audio();
@@ -724,12 +720,9 @@ function endGame(reason){
   g.rank=g.ranked.indexOf(g.me)+1;
   S.games=(S.games||0)+1;
   const avgT=g.me.times.length?g.me.times.reduce((a,b)=>a+b,0)/g.me.times.length:0;
-  g.newAch=recordGame({mode:g.mode,set:g.set.title,sid:g.set.id,rank:g.rank,score:g.me.score,acc:g.me.total?Math.round(g.me.correct/g.me.total*100):0,best:g.me.best,correct:g.me.correct,total:g.me.total,avg:avgT,perfects:g.me.perfects||0,big:!!g.me.big,boot:!!g.me.boot,trailed:!!g.me.trailed,daily:!!g.daily,orders:g.me.orders||0,byD:g.me.byD,hard:g.hard,mix:!!(g.ov&&g.ov.tag==='mix'&&!g.ov.rand),chBeat:!!(g.ch&&g.me.score>g.ch.score),tourney:!!g.tourney,legs:g.tourney?g.tourney.legs.map(l=>({mode:l.mode,rank:l.rank,score:l.score})):undefined});
+  g.newAch=recordGame({mode:g.mode,set:g.set.title,sid:g.set.id,rank:g.rank,score:g.me.score,acc:g.me.total?Math.round(g.me.correct/g.me.total*100):0,best:g.me.best,correct:g.me.correct,total:g.me.total,avg:avgT,perfects:g.me.perfects||0,big:!!g.me.big,boot:!!g.me.boot,trailed:!!g.me.trailed,daily:false,orders:g.me.orders||0,byD:g.me.byD,hard:g.hard,chBeat:!!(g.ch&&g.me.score>g.ch.score),tourney:!!g.tourney,legs:g.tourney?g.tourney.legs.map(l=>({mode:l.mode,rank:l.rank,score:l.score})):undefined});
   if(!g.tourney){{const bk=`${g.set.id}|${g.mode}|${g.time}${g.hard?'|h':''}${g.relaxed?'|r':''}`;S.best=S.best||{};const pb=S.best[bk];g.prevBest=pb?pb.score:null;if(!pb||g.me.score>pb.score){S.best[bk]={score:g.me.score,rank:g.rank,t:Date.now()};g.newBest=!!pb&&g.me.score>0}save()}}
   else save();
-  if(g.ov&&g.ov.tag==='mix'&&!g.ov.rand){S.mix=Object.assign(S.mix||{},{day:dayNum(),done:true,rank:g.rank,score:g.me.score});save()}
-  if(g.daily){S.daily={day:(dailyPick()||{}).day,done:true,rank:g.rank};save()}
-  if(g.weekly){const ev=weekEvent();if(ev){S.weekly={week:ev.week,done:true,rank:g.rank};save()}}
   renderEnd();
 }
 
@@ -1268,7 +1261,7 @@ document.addEventListener('click',e=>{
   if(a!=='ans'&&a!=='chest'&&a!=='move'&&a!=='pick'&&a!=='reel'&&a!=='pans'&&a!=='cafe')sfx('click');else audio();
   switch(a){
    case'cfg':{const k=t.dataset.k,v=t.dataset.v;
-     window.__gridScroll=($('#setGrid .many')||{}).scrollTop||0;DAILY=false;WEEK=false;SEASON=false;TOURNEY=false;if(['time','goal','diff','hard'].includes(k))window.__moreOpen=true;if(k==='time')S.cfg.time=+v;else if(k==='goal')S.cfg.goal[S.cfg.mode]=+v;else if(k==='hard')S.cfg.hard=v==='1';else S.cfg[k]=v;save();renderSetup();break}
+     window.__gridScroll=($('#setGrid .many')||{}).scrollTop||0;SEASON=false;TOURNEY=false;if(['time','goal','diff','hard'].includes(k))window.__moreOpen=true;if(k==='time')S.cfg.time=+v;else if(k==='goal')S.cfg.goal[S.cfg.mode]=+v;else if(k==='hard')S.cfg.hard=v==='1';else S.cfg[k]=v;save();renderSetup();break}
    case'mute':S.settings.sfx=!S.settings.sfx;save();t.textContent='Sound: '+(S.settings.sfx?'on':'off');if(S.settings.sfx)sfx('click');break;
    case'music':S.settings.music=!S.settings.music;save();t.textContent='Music: '+(S.settings.music?'on':'off');if(S.settings.music)audio();break;
    case'fav':{const on=toggleFav(t.dataset.id);toast(on?'Added to favourites':'Removed from favourites');const gs=($('#setGrid .many')||{}).scrollTop||0;renderSetGrid();const g3=$('#setGrid .many');if(g3)g3.scrollTop=gs;break}
@@ -1286,7 +1279,7 @@ document.addEventListener('click',e=>{
    case'tourneygo':readyTourney();break;
    case'usekey':useLuckyKey();break;
    case'skipkey':skipLuckyKey();break;
-   case'again':{P=null;const o=CURRENT_END&&CURRENT_END.ov;startGame(o&&o.rand?mixOv(true):o);break}
+   case'again':{P=null;const o=CURRENT_END&&CURRENT_END.ov;startGame(o&&o.tag==='mix'?null:o);break}
    case'copycode':{const i=$('#clCode');if(!i)break;i.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(i.value).then(()=>toast('Code copied'),()=>toast(ok?'Code copied':'Press Ctrl+C to copy the selected code'));else toast(ok?'Code copied':'Press Ctrl+C to copy the selected code');break}
    case'study':{const s=S.sets.find(x=>x.id===S.cfg.setId);if(s)startStudy(s);break}
    case'studymissed':{if(G&&G.me&&G.me.missed&&G.me.missed.length){const list=G.me.missed.map(m=>(G.set.qs||[]).find(q=>q.q===m.q)).filter(Boolean);if(list.length)startStudy(G.set,list);else toast('Those questions are not in the set any more')}break}
@@ -1299,7 +1292,7 @@ document.addEventListener('click',e=>{
    case'studypractice':{if(!SC)break;const shaky=SC.qs.filter((q,i)=>SC.mark[i]<0).map(q=>Object.assign({},q,{set:(SC.set&&SC.set.title)||q.set}));const sid=SC.set&&SC.set.id;SC=null;if(shaky.length)startPractice(shaky,'set',false,sid);else toast('Nothing marked as still learning');break}
    case'practice':startPractice();break;
    case'randomset':{const sets=S.sets.filter(s=>s.qs&&s.qs.length);const list=filterSets(sets).filter(s=>s.id!==S.cfg.setId);if(!list.length){toast('No other sets to pick from');break}
-     const s=list[Math.floor(Math.random()*list.length)];S.cfg.setId=s.id;DAILY=false;WEEK=false;SEASON=false;TOURNEY=false;save();window.__gridScroll=0;renderSetup();toast('Random pick: '+s.title);const on=$('#setGrid .choice.on');if(on)on.scrollIntoView({block:'nearest'});break}
+     const s=list[Math.floor(Math.random()*list.length)];S.cfg.setId=s.id;SEASON=false;TOURNEY=false;save();window.__gridScroll=0;renderSetup();toast('Random pick: '+s.title);const on=$('#setGrid .choice.on');if(on)on.scrollIntoView({block:'nearest'});break}
    case'levelpractice':openLevelPractice();break;
    case'stargoal':startStarGoal();break;
    case'pans':practiceAnswer(+t.dataset.i);break;
@@ -1353,14 +1346,10 @@ document.addEventListener('keydown',e=>{
 (function init(){
   const p=params();const sid=p.get('set');if(sid&&S.sets.find(s=>s.id===sid)){S.cfg.setId=sid;save()}
   const md=p.get('mode');if(md&&MODES[md]){S.cfg.mode=md;save()}
-  if(p.get('daily')==='1'){const d=dailyPick();if(d){S.cfg.setId=d.set.id;S.cfg.mode=d.mode;S.cfg.time=60;S.cfg.goal[d.mode]=0;S.cfg.hard=false;save();DAILY=true}}
-  if(p.get('week')==='1'){const ev=weekEvent();if(ev){S.cfg.setId=ev.set.id;S.cfg.mode=ev.mode;S.cfg.time=180;S.cfg.goal[ev.mode]=0;S.cfg.hard=false;save();WEEK=true;DAILY=false;SEASON=false}}
-  if(p.get('season')==='1'){const ev=typeof seasonEvent==='function'&&seasonEvent();if(ev){S.cfg.setId=ev.set.id;S.cfg.mode=ev.mode;S.cfg.time=180;S.cfg.goal[ev.mode]=0;S.cfg.hard=false;save();SEASON=true;WEEK=false;DAILY=false;TOURNEY=false}}
-  if(p.get('tourney')==='1'||p.get('tournament')==='1'){TOURNEY=true;WEEK=false;DAILY=false;SEASON=false}
+  if(p.get('season')==='1'){const ev=typeof seasonEvent==='function'&&seasonEvent();if(ev){S.cfg.setId=ev.set.id;S.cfg.mode=ev.mode;S.cfg.time=180;S.cfg.goal[ev.mode]=0;S.cfg.hard=false;save();SEASON=true;TOURNEY=false}}
+  if(p.get('tourney')==='1'||p.get('tournament')==='1'){TOURNEY=true;SEASON=false}
   if(p.get('pass')==='1'){S.cfg.passPlay=true;save()}
   if(p.get('team')==='1'){S.cfg.passPlay=true;S.cfg.passTeam=true;save()}
-  const mx=p.get('mix');
-  if(mx==='1'||mx==='rand'){history.replaceState(null,'',location.pathname);const o=mixOv(mx==='rand');if(o){renderSetup();startGame(o);return}}
   const st=p.get('study');
   if(st){const set=S.sets.find(s=>s.id===(st==='1'?S.cfg.setId:st));if(set){S.cfg.setId=set.id;save();history.replaceState(null,'',location.pathname+(p.get('set')?'?set='+encodeURIComponent(set.id):''));renderSetup();startStudy(set);return}}
   renderSetup();

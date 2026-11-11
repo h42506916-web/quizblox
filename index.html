@@ -48,20 +48,180 @@
   <p class="hero-quiet"><a href="sets.html#new">Create a question set</a></p>
 </div></section>
 
-<section class="today"><div class="container"><div id="dailyWrap"></div></div></section>
 
-<section class="section modes-home"><div class="container">
-  <div class="section-head"><h2>Pick a mode</h2></div>
-  <div class="mode-home-grid">
-      <a class="mode-tile mode-card gold" href="play.html?mode=gold"><span class="mode-emoji">💰</span><h3>Gold Quest</h3><p>Chests, gold and the odd goblin.</p><span class="mode-go">Play Gold Quest</span></a>
-      <a class="mode-tile mode-card race" href="play.html?mode=race"><span class="mode-emoji">🏁</span><h3>Quiz Race</h3><p>Fast answers, bigger streaks, more points.</p><span class="mode-go">Play Quiz Race</span></a>
-      <a class="mode-tile mode-card heist" href="play.html?mode=heist"><span class="mode-emoji">🔐</span><h3>Vault Heist</h3><p>Stop the marker in the green to crack the vault.</p><span class="mode-go">Play Vault Heist</span></a>
-      <a class="mode-tile mode-card fish" href="play.html?mode=fish"><span class="mode-emoji">🎣</span><h3>Lucky Catch</h3><p>Hook a fish and mash to reel it in.</p><span class="mode-go">Play Lucky Catch</span></a>
-      <a class="mode-tile mode-card cafe" href="play.html?mode=cafe"><span class="mode-emoji">☕</span><h3>Café Rush</h3><p>Serve the order before the customer leaves.</p><span class="mode-go">Play Café Rush</span></a>
-      <a class="mode-tile mode-card brawl" href="play.html?mode=brawl"><span class="mode-emoji">👹</span><h3>Monster Brawl</h3><p>Chip away at a giant boss. Highest damage wins.</p><span class="mode-go">Play Monster Brawl</span></a>
-      <a class="mode-tile mode-card rocket" href="play.html?mode=rocket"><span class="mode-emoji">🚀</span><h3>Rocket Race</h3><p>Play cards and race your rocket to space.</p><span class="mode-go">Play Rocket Race</span></a>
+<section class="world" id="worldMap" aria-labelledby="mapTitle">
+  <div class="container">
+    <div class="world-head">
+      <p class="eyebrow">The map</p>
+      <h2 id="mapTitle">Pick a place to play</h2>
+    </div>
+    <div class="world-map">
+      <svg class="map-art" viewBox="0 0 1100 680" role="presentation" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="qm-sea" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#7ec8e8"/>
+            <stop offset="1" stop-color="#3e8fbe"/>
+          </linearGradient>
+          <linearGradient id="qm-land" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#9ed56a"/>
+            <stop offset="1" stop-color="#5ea344"/>
+          </linearGradient>
+          <linearGradient id="qm-sand" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffe7b0"/>
+            <stop offset="1" stop-color="#f0c878"/>
+          </linearGradient>
+          <linearGradient id="qm-hill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#b8e07c"/>
+            <stop offset="1" stop-color="#6aaa45"/>
+          </linearGradient>
+          <filter id="qm-soft" x="-5%" y="-5%" width="110%" height="110%">
+            <feDropShadow dx="0" dy="6" stdDeviation="4" flood-color="#1b4d6e" flood-opacity=".22"/>
+          </filter>
+        </defs>
+        <rect width="1100" height="680" rx="36" fill="url(#qm-sea)"/>
+        <!-- waves -->
+        <g class="map-waves" fill="none" stroke="#dff4ff" stroke-width="3" stroke-linecap="round" opacity=".55">
+          <path d="M30 80c30 12 30-12 60 0s30-12 60 0s30-12 60 0"/>
+          <path d="M820 90c30 12 30-12 60 0s30-12 60 0s30-12 60 0"/>
+          <path d="M40 560c30 12 30-12 60 0s30-12 60 0s30-12 60 0"/>
+          <path d="M860 600c30 12 30-12 60 0s30-12 60 0"/>
+          <path class="map-wave" d="M70 200c28 10 28-10 56 0s28-10 56 0"/>
+          <path class="map-wave" d="M900 480c28 10 28-10 56 0s28-10 56 0"/>
+        </g>
+        <!-- distant clouds -->
+        <g class="map-cloud" fill="#fff" opacity=".85">
+          <ellipse cx="160" cy="70" rx="46" ry="18"/>
+          <ellipse cx="190" cy="62" rx="28" ry="16"/>
+          <ellipse cx="128" cy="64" rx="22" ry="12"/>
+        </g>
+        <g class="map-cloud map-cloud-2" fill="#fff" opacity=".75">
+          <ellipse cx="980" cy="120" rx="50" ry="18"/>
+          <ellipse cx="1010" cy="112" rx="26" ry="14"/>
+          <ellipse cx="950" cy="114" rx="20" ry="11"/>
+        </g>
+        <!-- sun -->
+        <g class="map-sun">
+          <circle cx="80" cy="90" r="28" fill="#ffcf3f"/>
+          <circle cx="80" cy="90" r="18" fill="#ffe27a"/>
+        </g>
+        <!-- island beach then land -->
+        <path filter="url(#qm-soft)" fill="url(#qm-sand)" d="M145 365C95 275 175 155 300 145C390 50 545 70 650 130C780 60 955 115 1030 230C1100 330 1055 455 985 540C910 655 690 690 505 665C325 690 140 575 145 365Z"/>
+        <path fill="url(#qm-land)" d="M170 360C130 285 200 180 310 172C395 90 535 105 635 155C755 100 920 145 990 245C1050 335 1010 445 945 520C875 620 680 650 510 630C345 652 185 555 170 360Z"/>
+        <!-- hills -->
+        <path fill="url(#qm-hill)" opacity=".9" d="M210 300C230 230 310 215 355 255C400 220 470 240 480 300C430 285 350 310 210 300Z"/>
+        <path fill="#4e8d38" opacity=".35" d="M720 250C760 190 860 195 910 250C850 235 790 255 720 250Z"/>
+        <!-- southeast mountain for the cave -->
+        <path fill="#6b7c8a" d="M780 520L860 330L950 520Z"/>
+        <path fill="#8b9aa8" d="M860 330L900 430L820 470Z"/>
+        <path fill="#f7fbff" d="M845 360L860 330L878 368Z"/>
+        <!-- pond -->
+        <ellipse class="map-pond" cx="260" cy="500" rx="78" ry="42" fill="#4db3d4"/>
+        <ellipse cx="250" cy="492" rx="48" ry="22" fill="#9ee3f5" opacity=".45"/>
+        <ellipse cx="280" cy="508" rx="18" ry="8" fill="#fff" opacity=".35"/>
+        <!-- winding path -->
+        <path fill="none" stroke="#f0d29a" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" d="M250 300C300 330 340 370 420 390C500 412 560 360 600 300C640 240 700 210 800 200C860 230 900 300 860 360C820 430 760 470 700 500C640 530 580 500 520 470C450 500 360 530 300 500"/>
+        <path fill="none" stroke="#c9a45e" stroke-width="3" stroke-dasharray="10 12" stroke-linecap="round" d="M250 300C300 330 340 370 420 390C500 412 560 360 600 300C640 240 700 210 800 200C860 230 900 300 860 360C820 430 760 470 700 500C640 530 580 500 520 470C450 500 360 530 300 500"/>
+        <!-- racetrack oval -->
+        <ellipse cx="530" cy="200" rx="95" ry="48" fill="none" stroke="#d9ccae" stroke-width="18"/>
+        <ellipse cx="530" cy="200" rx="95" ry="48" fill="none" stroke="#5b4cf0" stroke-width="6" stroke-dasharray="16 10"/>
+        <ellipse cx="530" cy="200" rx="70" ry="28" fill="#8fce6d"/>
+        <rect class="map-flag" x="610" y="150" width="6" height="36" rx="1" fill="#1b1340"/>
+        <polygon class="map-flag" points="616,152 648,164 616,176" fill="#ff6b57"/>
+        <!-- goldmine entrance -->
+        <g transform="translate(210,280)">
+          <path d="M-40 20L0 -36L40 20Z" fill="#7a8b6a"/>
+          <path d="M-22 20C-22 -6 22 -6 22 20Z" fill="#3a2a1a"/>
+          <path d="M-14 20C-14 4 14 4 14 20Z" fill="#1b1340"/>
+          <rect x="-48" y="16" width="16" height="10" rx="2" fill="#c9a45e"/>
+          <circle class="map-sparkle" cx="28" cy="-8" r="4" fill="#ffcf3f"/>
+        </g>
+        <!-- cafe building, central -->
+        <g transform="translate(520,390)">
+          <rect x="-36" y="-8" width="72" height="42" rx="6" fill="#f4efe4" stroke="#1b1340" stroke-width="3"/>
+          <path d="M-46 -8L0 -38L46 -8Z" fill="#c0662b" stroke="#1b1340" stroke-width="3" stroke-linejoin="round"/>
+          <rect x="-16" y="12" width="16" height="20" rx="2" fill="#5b4cf0"/>
+          <rect x="8" y="6" width="14" height="12" rx="2" fill="#7ec8e8"/>
+          <circle class="map-steam" cx="22" cy="-44" r="4" fill="#fff" opacity=".8"/>
+          <circle class="map-steam map-steam-2" cx="30" cy="-54" r="3" fill="#fff" opacity=".6"/>
+        </g>
+        <!-- vault / bank -->
+        <g transform="translate(860,300)">
+          <rect x="-42" y="-6" width="84" height="48" rx="4" fill="#f4efe4" stroke="#1b1340" stroke-width="3"/>
+          <rect x="-42" y="-22" width="84" height="18" rx="3" fill="#16a34a" stroke="#1b1340" stroke-width="3"/>
+          <rect x="-10" y="10" width="20" height="30" fill="#1b1340"/>
+          <circle cx="0" cy="24" r="3" fill="#ffcf3f"/>
+          <rect x="-28" y="8" width="12" height="16" fill="#c9e8d4"/>
+          <rect x="16" y="8" width="12" height="16" fill="#c9e8d4"/>
+        </g>
+        <!-- cave mouth on the mountain -->
+        <g transform="translate(860,470)">
+          <ellipse cx="0" cy="10" rx="38" ry="28" fill="#1b1340"/>
+          <ellipse cx="0" cy="16" rx="22" ry="16" fill="#2a1830"/>
+          <path class="map-glow" d="M-8 8Q0 -6 8 8" fill="none" stroke="#d63b66" stroke-width="3" opacity=".8"/>
+        </g>
+        <!-- launch pad -->
+        <g transform="translate(960,175)">
+          <rect x="-28" y="28" width="56" height="10" rx="3" fill="#4a4a62"/>
+          <rect x="-18" y="18" width="36" height="12" fill="#c9c3ff"/>
+          <g class="map-rocket-idle">
+            <path d="M0 -22L16 22H-16Z" fill="#5b4cf0" stroke="#1b1340" stroke-width="2"/>
+            <circle cx="0" cy="6" r="5" fill="#fff"/>
+            <path class="map-flame" d="M-6 24L0 42L6 24Z" fill="#ff6b57"/>
+          </g>
+        </g>
+        <!-- trees -->
+        <g font-size="22">
+          <text x="380" y="300">🌳</text>
+          <text x="400" y="320">🌲</text>
+          <text x="680" y="300">🌳</text>
+          <text x="330" y="560">🌴</text>
+          <text x="620" y="580">🌳</text>
+          <text x="700" y="250">🌲</text>
+        </g>
+        <!-- little boat -->
+        <g class="map-boat" transform="translate(80,420)">
+          <path d="M0 0H46L38 14H8Z" fill="#c0662b" stroke="#1b1340" stroke-width="2"/>
+          <path d="M22 0V-28L40 -8H22Z" fill="#fff" stroke="#1b1340" stroke-width="2"/>
+        </g>
+        <!-- cartouche -->
+        <g transform="translate(80,590)">
+          <rect x="0" y="-28" width="168" height="44" rx="10" fill="#fff8ec" stroke="#1b1340" stroke-width="3"/>
+          <text x="84" y="2" text-anchor="middle" font-family="Nunito, Trebuchet MS, sans-serif" font-size="18" font-weight="800" fill="#1b1340">QUIZ ISLE</text>
+        </g>
+      </svg>
+      <div class="map-spots">
+        <a class="map-spot gold" style="--x:22%;--y:42%" href="play.html?mode=gold">
+          <span class="map-emoji" aria-hidden="true">💰</span>
+          <span class="map-label"><b>Gold Quest</b><i>The Goldmine</i></span>
+        </a>
+        <a class="map-spot race" style="--x:48%;--y:26%" href="play.html?mode=race">
+          <span class="map-emoji" aria-hidden="true">🏁</span>
+          <span class="map-label"><b>Quiz Race</b><i>The Racetrack</i></span>
+        </a>
+        <a class="map-spot heist" style="--x:78%;--y:42%" href="play.html?mode=heist">
+          <span class="map-emoji" aria-hidden="true">🔐</span>
+          <span class="map-label"><b>Vault Heist</b><i>The Bank</i></span>
+        </a>
+        <a class="map-spot fish" style="--x:24%;--y:70%" href="play.html?mode=fish">
+          <span class="map-emoji" aria-hidden="true">🎣</span>
+          <span class="map-label"><b>Lucky Catch</b><i>The Pond</i></span>
+        </a>
+        <a class="map-spot cafe" style="--x:48%;--y:55%" href="play.html?mode=cafe">
+          <span class="map-emoji" aria-hidden="true">☕</span>
+          <span class="map-label"><b>Café Rush</b><i>The Café</i></span>
+        </a>
+        <a class="map-spot brawl" style="--x:78%;--y:66%" href="play.html?mode=brawl">
+          <span class="map-emoji" aria-hidden="true">👹</span>
+          <span class="map-label"><b>Monster Brawl</b><i>The Cave</i></span>
+        </a>
+        <a class="map-spot rocket" style="--x:88%;--y:22%" href="play.html?mode=rocket">
+          <span class="map-emoji" aria-hidden="true">🚀</span>
+          <span class="map-label"><b>Rocket Race</b><i>The Launch Pad</i></span>
+        </a>
+      </div>
+    </div>
   </div>
-</div></section>
+</section>
 </main>
 <footer class="site-footer"><div class="container">
   <div class="foot-grid">
