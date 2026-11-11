@@ -33,8 +33,8 @@ p{margin:0 0 1em}
 .brand:hover{text-decoration:none}
 .brand svg{width:32px;height:32px;flex:none;transition:transform .2s}
 .brand:hover svg{transform:rotate(-8deg) scale(1.08)}
-.nav{display:flex;align-items:center;gap:4px}
-.nav a:not(.btn){color:var(--ink-2);font-size:15px;font-weight:700;padding:8px 14px;border-radius:99px}
+.nav{display:flex;align-items:center;gap:8px}
+.nav a:not(.btn){color:var(--ink-2);font-size:15px;font-weight:700;padding:8px 16px;border-radius:99px}
 .nav a:not(.btn):hover{background:var(--bg-2);text-decoration:none;color:var(--ink)}
 .nav a[aria-current=page]:not(.btn){color:var(--brand-d);background:var(--brand-tint)}
 .nav .nav-cta{margin-left:8px}
@@ -1244,3 +1244,62 @@ html.high-contrast body.season-summer{--bg:#fff;--bg-2:#f4f1e8}
 .lost-page .lead{max-width:42ch}
 .lost-hint{margin-top:28px;max-width:46ch}
 .lost-hint code{font-size:.95em}
+
+/* Layout pass: simpler home and play */
+.hero-simple{padding:56px 0 28px;text-align:center}
+.hero-simple h1{max-width:16ch;margin:0 auto 12px;font-size:clamp(36px,6vw,64px)}
+.hero-simple .lead{margin:0 auto 28px;max-width:28ch;font-size:20px}
+.hero-actions{justify-content:center}
+.hero-actions .btn{min-width:180px;justify-content:center}
+.hero-quiet{margin:16px 0 0;font-size:15px}
+.hero-quiet a{font-weight:700}
+.today{padding:0 0 12px}
+#dailyWrap{max-width:640px;margin:0 auto}
+body[data-page="home"] .today .daily{margin:0}
+.modes-home{padding-top:24px}
+.mode-home-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+a.mode-tile{display:flex;flex-direction:column;align-items:flex-start;gap:8px;background:#fff;border:2px solid var(--ink);border-radius:20px;padding:22px 22px 20px;box-shadow:4px 4px 0 var(--line);text-decoration:none;color:inherit;min-height:180px;transition:transform .08s,box-shadow .08s}
+a.mode-tile:hover{transform:translateY(-2px);box-shadow:6px 6px 0 var(--line);text-decoration:none;color:inherit}
+a.mode-tile .mode-emoji{font-size:32px;line-height:1}
+a.mode-tile h3{margin:0;font-size:22px}
+a.mode-tile p{margin:0;flex:1;color:var(--ink-2);font-size:15px;line-height:1.4}
+a.mode-tile .mode-go{font-weight:800;color:var(--brand-d);font-size:14px}
+.foot-grid{grid-template-columns:1.2fr .8fr}
+.setup-flow{display:flex;flex-direction:column;gap:22px;max-width:980px;margin:0 auto 48px}
+.setup-step{padding:22px 24px}
+.step-title{display:flex;align-items:center;gap:12px;margin:0 0 16px;font-size:22px}
+.step-n{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--brand);color:#fff;font-size:16px;flex:none}
+.mode-grid-roomy{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.mode-grid-roomy .choice.mode{min-height:132px;padding:16px 16px 14px;align-items:flex-start;text-align:left}
+.go-row{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center}
+.go-actions{display:flex;flex-direction:column;gap:12px;min-width:220px}
+.go-actions .btn{width:100%;justify-content:center}
+.more-opts{margin-top:22px;padding-top:18px;border-top:2px solid var(--line);display:grid;gap:20px}
+.more-opts[hidden]{display:none}
+.more-opts .group{margin:0}
+.more-tools{display:flex;flex-wrap:wrap;gap:10px}
+.more-tools .btn{width:auto}
+.name-row{align-items:flex-start}
+.name-row .input{max-width:240px;flex:1 1 180px}
+.play-extras{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:20px;text-align:left}
+.play-extras .daily,.play-extras .tourney-card,.play-extras .season-card,.play-extras .qotd-card{margin:0;max-width:none}
+.play-extras #qotdMount:empty{display:none}
+@media(max-width:700px){
+  .hero-simple{padding:36px 0 20px}
+  .hero-actions .btn{width:100%;min-width:0}
+  .go-row{grid-template-columns:1fr}
+  .go-actions{min-width:0}
+  .setup-step{padding:18px 16px}
+  .foot-grid{grid-template-columns:1fr}
+  .name-row{flex-direction:column}
+  .name-row .input{max-width:none;width:100%}
+}
+@media(max-width:390px){
+  .hero-simple h1{font-size:34px}
+  .mode-home-grid{gap:14px;grid-template-columns:1fr}
+  a.mode-tile{min-height:0;padding:18px}
+  .play-extras{grid-template-columns:1fr}
+  .seg{gap:10px}
+  .seg button{padding:8px 14px}
+  .chips{gap:8px}
+}

@@ -13,46 +13,71 @@ function renderSetup(){
   if(!sets.find(s=>s.id===c.setId))c.setId=sets[0]?sets[0].id:null;
   const m=MODES[c.mode];const set=sets.find(s=>s.id===c.setId);
   const timeLabel={30:'30 seconds',60:'1 minute',120:'2 minutes',180:'3 minutes',300:'5 minutes'}[c.time];
-  view.innerHTML=`<div class="page-head"><h1>Let's <span class="hl">play</span>.</h1><p>${c.passPlay?(c.passTeam?'Two players, one score. Pass the device and take on the bots together.':'Two players, one device. Answer a question, then pass it over. No bots — just you and a friend.'):'Pick a set, pick a mode, pick a fight. Four bots are already warming up and talking trash (silently).'}</p>${DAILY?'<p class="daily-note"><b>Daily challenge loaded.</b> Everything is set: just hit Let\'s go. Change anything and it becomes a regular game.</p>':WEEK?'<p class="daily-note week-note"><b>This week\'s event is loaded.</b> Set, mode and a 3-minute clock are ready. Change anything and it becomes a regular game.</p>':SEASON?'<p class="daily-note season-note"><b>Summer holidays race is loaded.</b> Summer Holidays and a 3-minute Quiz Race are ready. Change anything and it becomes a regular game.</p>':TOURNEY?'<p class="daily-note tourney-note"><b>All-modes tournament is loaded.</b> All seven modes, 30 seconds each, same rivals all the way. Placement points decide it. Change anything and it becomes a regular game.</p>':''}<div class="daily-row">${DAILY?'':dailyCard()}${mixCard()}${weekCard()}${streakCard()}</div></div>
-  <div class="setup-grid page-body">
-   <div class="panel">
-    <div class="group"><span class="label" id="lblSet">1. Question set</span>
-     ${sets.length?`<div class="set-tools"><label class="sr-only" for="setSearch">Search question sets</label><input class="input" id="setSearch" type="search" placeholder="Search ${sets.length} sets…" value="${esc(FILT.q)}" autocomplete="off"><button type="button" class="btn btn-secondary btn-sm" id="randomBtn" data-act="randomset" title="Pick a random set from the list below">🎲 Random set</button></div><div class="chips" id="setChips" role="group" aria-label="Filter sets by category"></div><div id="recentRow"></div><div id="setGrid"></div><p class="muted scroll-hint" id="setHint"></p>`
+  const more=!!window.__moreOpen||!!c.passPlay||!!c.hard||!!TOURNEY;
+  const extras=[
+    '<div id="seasonMount">'+((typeof seasonCard==='function'&&seasonCard())||'')+'</div>',
+    (typeof tourneyCard==='function'&&tourneyCard())||'',
+    '<div id="qotdMount">'+(typeof qotdCard==='function'?qotdCard():'')+'</div>',
+    mixCard(),weekCard(),streakCard()
+  ].join('');
+  const note=DAILY?'<p class="daily-note"><b>Daily challenge loaded.</b> Everything is set: just hit Let\'s go. Change anything and it becomes a regular game.</p>':WEEK?'<p class="daily-note week-note"><b>This week\'s event is loaded.</b> Set, mode and a 3-minute clock are ready. Change anything and it becomes a regular game.</p>':SEASON?'<p class="daily-note season-note"><b>Summer holidays race is loaded.</b> Summer Holidays and a 3-minute Quiz Race are ready. Change anything and it becomes a regular game.</p>':TOURNEY?'<p class="daily-note tourney-note"><b>All-modes tournament is loaded.</b> All seven modes, 30 seconds each, same rivals all the way. Placement points decide it. Change anything and it becomes a regular game.</p>':'';
+  view.innerHTML=`<div class="page-head"><h1>Let's <span class="hl">play</span>.</h1><p>${c.passPlay?(c.passTeam?'Two players, one score. Pass the device and take on the bots together.':'Two players, one device. Answer a question, then pass it over. No bots — just you and a friend.'):'Pick a set, pick a mode, then start. Four bots are already warming up.'}</p>${note}<div class="play-extras" id="playExtras">${extras}</div></div>
+  <div class="setup-flow page-body">
+   <section class="panel setup-step" id="stepSet">
+    <h2 class="step-title" id="lblSet"><span class="step-n">1</span> Pick a set</h2>
+    ${sets.length?`<div class="set-tools"><label class="sr-only" for="setSearch">Search question sets</label><input class="input" id="setSearch" type="search" placeholder="Search ${sets.length} sets…" value="${esc(FILT.q)}" autocomplete="off"><button type="button" class="btn btn-secondary btn-sm" id="randomBtn" data-act="randomset" title="Pick a random set from the list below">🎲 Random set</button></div><div class="chips" id="setChips" role="group" aria-label="Filter sets by category"></div><div id="recentRow"></div><div id="setGrid"></div><p class="muted scroll-hint" id="setHint"></p>`
      :emptyHTML({panel:false,title:'No question sets.',body:"It's quiet. Too quiet.",cta:'<a href="sets.html#new">Make one</a> and we\'ll get this party started.',mood:'sad'})}
+   </section>
+   <section class="panel setup-step" id="stepMode">
+    <h2 class="step-title" id="lblMode"><span class="step-n">2</span> Pick a mode</h2>
+    <div class="choice-grid mode-grid mode-grid-roomy" role="group" aria-labelledby="lblMode">${Object.entries(MODES).map(([k,v])=>`<button class="choice mode ${c.mode===k?'on':''}" aria-pressed="${c.mode===k}" data-act="cfg" data-k="mode" data-v="${k}">${MODE_NEW.includes(k)?'<i class="new-sticker">New</i>':''}<span class="mode-em" aria-hidden="true">${v.emoji}</span><b>${v.name}</b><span class="mode-short">${MODE_SHORT[k]||''}</span></button>`).join('')}</div>
+    <p class="mode-desc" id="modeDesc" aria-live="polite"><b>${m.emoji} ${m.name}:</b> ${m.desc}</p>
+   </section>
+   <section class="panel setup-step setup-go" id="stepGo">
+    <h2 class="step-title"><span class="step-n">3</span> Start</h2>
+    <div class="go-row">
+     <div class="summary" aria-label="Game summary">
+      <dl style="margin:0"><dt>Question set</dt><dd>${set?esc(set.title):'–'}</dd><dt>Mode</dt><dd>${m.name}</dd><dt>Time limit</dt><dd>${timeLabel}</dd><dt>Goal</dt><dd>${c.goal[c.mode]?c.goal[c.mode]+' '+m.unit:'None'}</dd><dt>Opponents</dt><dd>${c.passPlay?(c.passTeam?'Team with '+esc((S.p2&&S.p2.name)||'Player 2')+' · 4 bots · '+(c.diff==='auto'?'Auto ('+autoDiff()+')':c.diff):'Pass & Play · '+esc((S.p2&&S.p2.name)||'Player 2')):'4 bots · '+(c.diff==='auto'?'Auto ('+autoDiff()+')':c.diff)}${c.hard?' · hard 🌶️':''}</dd><dt>You</dt><dd>${esc(S.name||'You')} ${S.emoji}</dd>${set?`<dt>Your best</dt><dd id="sumBest">${(()=>{const b=bestOf(set.id,c.mode,c.time,c.hard,S.settings.noTimer);return b?b.score+' '+m.unit:'First try on this setup'})()}</dd>`:''}</dl>
+     </div>
+     <div class="go-actions">
+      <button class="btn btn-primary btn-lg" id="startBtn" data-act="start" ${set?'':'disabled'}>${ICON.play} Let's go!</button>
+      <button type="button" class="btn btn-secondary" id="moreBtn" aria-expanded="${more?'true':'false'}" aria-controls="moreOpts">${more?'Hide options':'More options'}</button>
+     </div>
     </div>
-    <div class="group"><span class="label" id="lblMode">2. Game mode</span>
-     <div class="choice-grid mode-grid" role="group" aria-labelledby="lblMode">${Object.entries(MODES).map(([k,v])=>`<button class="choice mode ${c.mode===k?'on':''}" aria-pressed="${c.mode===k}" data-act="cfg" data-k="mode" data-v="${k}">${MODE_NEW.includes(k)?'<i class="new-sticker">New</i>':''}<span class="mode-em" aria-hidden="true">${v.emoji}</span><b>${v.name}</b><span class="mode-short">${MODE_SHORT[k]||''}</span></button>`).join('')}</div>
-     <p class="mode-desc" id="modeDesc" aria-live="polite"><b>${m.emoji} ${m.name}:</b> ${m.desc}</p></div>
-    <div class="group"><span class="label">3. Time limit</span><div class="seg">${[[30,'30 sec'],[60,'1 min'],[120,'2 min'],[180,'3 min'],[300,'5 min']].map(([v,l])=>`<button class="${c.time===v?'on':''}" aria-pressed="${c.time===v}" data-act="cfg" data-k="time" data-v="${v}">${l}</button>`).join('')}</div></div>
-    <div class="group"><span class="label">${c.mode==='brawl'?'Boss HP':'Goal'} <span class="muted" style="font-weight:400">– ${c.mode==='brawl'?'everyone chips in, top damage wins':'first to reach it wins'}</span></span><div class="seg">${m.goals.map(v=>`<button class="${c.goal[c.mode]===v?'on':''}" aria-pressed="${c.goal[c.mode]===v}" data-act="cfg" data-k="goal" data-v="${v}">${v?v+' '+m.unit:'No goal'}</button>`).join('')}</div></div>
-    <div class="group"><span class="label">Opponent difficulty</span><div class="seg">${['easy','normal','hard','auto'].map(v=>`<button class="${c.diff===v?'on':''}" aria-pressed="${c.diff===v}" data-act="cfg" data-k="diff" data-v="${v}">${v==='auto'?'Auto':v[0].toUpperCase()+v.slice(1)}</button>`).join('')}</div>${c.diff==='auto'?`<p class="hint" id="autoHint" style="margin:8px 0 0">Rivals will play at <b>${autoDiff()[0].toUpperCase()+autoDiff().slice(1)}</b> based on your recent results${(S.history||[]).filter(x=>!x.tourney).length<2?' (after a couple of games they will start to adjust)':''}.</p>`:''}</div>
-    <div class="group"><span class="label">Hard mode <span class="muted" style="font-weight:400">– optional</span></span><div class="seg">${[['0','Off'],['1','🌶️ On']].map(([v,l])=>`<button class="${(c.hard?'1':'0')===v?'on':''}" aria-pressed="${(c.hard?'1':'0')===v}" data-act="cfg" data-k="hard" data-v="${v}">${l}</button>`).join('')}</div><p class="hint" style="margin:8px 0 0">Question timers are 30% shorter, rivals are sharper, and every wrong answer costs 5% of your score.</p>
-     <details class="rivals"${window.__rivOpen?' open':''}><summary>Meet the rivals</summary><ul>${BOTS.map(b=>`<li><span class="r-e" aria-hidden="true">${b.emoji}</span><span><b>${esc(b.name)}</b> ${esc(b.blurb)}</span></li>`).join('')}</ul></details></div>
-    <div class="group"><label class="label" for="nameIn">Your name &amp; avatar</label><div class="btn-row"><input class="input" id="nameIn" maxlength="14" style="max-width:240px" value="${esc(S.name)}" placeholder="Your legendary name"><div class="seg emoji" role="group" aria-label="Choose avatar">${MY_EMOJIS.map(e=>`<button class="${S.emoji===e?'on':''}" aria-pressed="${S.emoji===e}" data-act="emoji" data-v="${e}" aria-label="Avatar ${e}">${e}</button>`).join('')}</div></div></div>
-    <div class="group" id="passGroup"><label class="pass-toggle" for="passChk"><input type="checkbox" id="passChk"${c.passPlay?' checked':''}> Pass &amp; Play <span class="muted">– two players, one device</span></label>
-     <p class="hint" style="margin:8px 0 0">Take turns on this screen. After each question, a prompt tells you to pass the device. Daily, weekly, class, demo, tournament and challenge games stay one-player.</p>
-     <div id="passFields"${c.passPlay?'':' hidden'}><label class="label" for="p2Name">Player 2 name &amp; avatar</label><div class="btn-row"><input class="input" id="p2Name" maxlength="14" style="max-width:240px" value="${esc((S.p2&&S.p2.name)||'Player 2')}" placeholder="Player 2"><div class="seg emoji" role="group" aria-label="Player 2 avatar">${MY_EMOJIS.map(e=>`<button class="${((S.p2&&S.p2.emoji)||'🐼')===e?'on':''}" aria-pressed="${((S.p2&&S.p2.emoji)||'🐼')===e}" data-act="p2emoji" data-v="${e}" aria-label="Player 2 avatar ${e}">${e}</button>`).join('')}</div></div>
-     <label class="pass-toggle" for="teamChk" style="margin-top:12px"><input type="checkbox" id="teamChk"${c.passTeam?' checked':''}> Team up against the bots</label>
-     <p class="hint" style="margin:8px 0 0">Share one score and take turns. The four rivals still play. Leave this off to play against each other.</p></div></div>
-   </div>
-   <aside class="panel summary" aria-label="Game summary"><h3 style="margin:0 0 16px">Summary</h3>
-    <dl style="margin:0"><dt>Question set</dt><dd>${set?esc(set.title):'–'}</dd><dt>Mode</dt><dd>${m.name}</dd><dt>Time limit</dt><dd>${timeLabel}</dd><dt>Goal</dt><dd>${c.goal[c.mode]?c.goal[c.mode]+' '+m.unit:'None'}</dd><dt>Opponents</dt><dd>${c.passPlay?(c.passTeam?'Team with '+esc((S.p2&&S.p2.name)||'Player 2')+' · 4 bots · '+(c.diff==='auto'?'Auto ('+autoDiff()+')':c.diff):'Pass & Play · '+esc((S.p2&&S.p2.name)||'Player 2')):'4 bots · '+(c.diff==='auto'?'Auto ('+autoDiff()+')':c.diff)}${c.hard?' · hard 🌶️':''}</dd><dt>You</dt><dd>${esc(S.name||'You')} ${S.emoji}</dd>${set?`<dt>Your best</dt><dd id="sumBest">${(()=>{const b=bestOf(set.id,c.mode,c.time,c.hard,S.settings.noTimer);return b?b.score+' '+m.unit:'First try on this setup'})()}</dd>`:''}</dl>
-    <button class="btn btn-primary btn-lg" style="width:100%" id="startBtn" data-act="start" ${set?'':'disabled'}>${ICON.play} Let's go!</button>
-    <p class="muted" style="font-size:13px;margin:12px 0 0">Pro tip: press <span class="kbd">1</span>–<span class="kbd">4</span> to answer, or <span class="kbd">?</span> for every shortcut.</p>
-    <button type="button" class="btn btn-secondary btn-sm" style="margin-top:10px;width:100%" id="demoBtn" data-act="demo">⏱️ Try a 30-second demo</button>
-    <button type="button" class="btn btn-secondary btn-sm" style="margin-top:8px;width:100%" id="tourneyBtn" data-act="tourney">🏟️ All-modes tournament</button>
-    <div class="btn-row" style="margin-top:12px;gap:8px"><button class="btn btn-secondary btn-sm" id="muteBtn" data-act="mute">Sound: ${S.settings.sfx?'on':'off'}</button><button class="btn btn-secondary btn-sm" id="musicBtn" data-act="music">Music: ${S.settings.music?'on':'off'}</button></div>
-    <button class="btn btn-secondary btn-sm" style="margin-top:12px;width:100%" id="levelBtn" data-act="levelpractice">Practise by level…</button>${set?goalBlock(set):''}
-    ${set?`<button class="btn btn-secondary btn-sm" style="margin-top:8px;width:100%" id="studyBtn" data-act="study">🃏 Study cards (${set.qs.length})</button>`:''}
-    ${(S.weak||[]).length?`<button class="btn btn-secondary btn-sm" style="margin-top:8px;width:100%" id="practiceBtn" data-act="practice">Practise weak spots (${S.weak.length})</button>`:''}
-   </aside></div>`;
+    <div id="moreOpts" class="more-opts"${more?'':' hidden'}>
+      <div class="group"><span class="label">Time limit</span><div class="seg">${[[30,'30 sec'],[60,'1 min'],[120,'2 min'],[180,'3 min'],[300,'5 min']].map(([v,l])=>`<button class="${c.time===v?'on':''}" aria-pressed="${c.time===v}" data-act="cfg" data-k="time" data-v="${v}">${l}</button>`).join('')}</div></div>
+      <div class="group"><span class="label">${c.mode==='brawl'?'Boss HP':'Goal'} <span class="muted" style="font-weight:400">– ${c.mode==='brawl'?'everyone chips in, top damage wins':'first to reach it wins'}</span></span><div class="seg">${m.goals.map(v=>`<button class="${c.goal[c.mode]===v?'on':''}" aria-pressed="${c.goal[c.mode]===v}" data-act="cfg" data-k="goal" data-v="${v}">${v?v+' '+m.unit:'No goal'}</button>`).join('')}</div></div>
+      <div class="group"><span class="label">Opponent difficulty</span><div class="seg">${['easy','normal','hard','auto'].map(v=>`<button class="${c.diff===v?'on':''}" aria-pressed="${c.diff===v}" data-act="cfg" data-k="diff" data-v="${v}">${v==='auto'?'Auto':v[0].toUpperCase()+v.slice(1)}</button>`).join('')}</div>${c.diff==='auto'?`<p class="hint" id="autoHint" style="margin:8px 0 0">Rivals will play at <b>${autoDiff()[0].toUpperCase()+autoDiff().slice(1)}</b> based on your recent results${(S.history||[]).filter(x=>!x.tourney).length<2?' (after a couple of games they will start to adjust)':''}.</p>`:''}</div>
+      <div class="group"><span class="label">Hard mode <span class="muted" style="font-weight:400">– optional</span></span><div class="seg">${[['0','Off'],['1','🌶️ On']].map(([v,l])=>`<button class="${(c.hard?'1':'0')===v?'on':''}" aria-pressed="${(c.hard?'1':'0')===v}" data-act="cfg" data-k="hard" data-v="${v}">${l}</button>`).join('')}</div><p class="hint" style="margin:8px 0 0">Question timers are 30% shorter, rivals are sharper, and every wrong answer costs 5% of your score.</p>
+       <details class="rivals"${window.__rivOpen?' open':''}><summary>Meet the rivals</summary><ul>${BOTS.map(b=>`<li><span class="r-e" aria-hidden="true">${b.emoji}</span><span><b>${esc(b.name)}</b> ${esc(b.blurb)}</span></li>`).join('')}</ul></details></div>
+      <div class="group"><label class="label" for="nameIn">Your name &amp; avatar</label><div class="btn-row name-row"><input class="input" id="nameIn" maxlength="14" value="${esc(S.name)}" placeholder="Your legendary name"><div class="seg emoji" role="group" aria-label="Choose avatar">${MY_EMOJIS.map(e=>`<button class="${S.emoji===e?'on':''}" aria-pressed="${S.emoji===e}" data-act="emoji" data-v="${e}" aria-label="Avatar ${e}">${e}</button>`).join('')}</div></div></div>
+      <div class="group" id="passGroup"><label class="pass-toggle" for="passChk"><input type="checkbox" id="passChk"${c.passPlay?' checked':''}> Pass &amp; Play <span class="muted">– two players, one device</span></label>
+       <p class="hint" style="margin:8px 0 0">Take turns on this screen. After each question, a prompt tells you to pass the device. Daily, weekly, class, demo, tournament and challenge games stay one-player.</p>
+       <div id="passFields"${c.passPlay?'':' hidden'}><label class="label" for="p2Name">Player 2 name &amp; avatar</label><div class="btn-row name-row"><input class="input" id="p2Name" maxlength="14" value="${esc((S.p2&&S.p2.name)||'Player 2')}" placeholder="Player 2"><div class="seg emoji" role="group" aria-label="Player 2 avatar">${MY_EMOJIS.map(e=>`<button class="${((S.p2&&S.p2.emoji)||'🐼')===e?'on':''}" aria-pressed="${((S.p2&&S.p2.emoji)||'🐼')===e}" data-act="p2emoji" data-v="${e}" aria-label="Player 2 avatar ${e}">${e}</button>`).join('')}</div></div>
+       <label class="pass-toggle" for="teamChk" style="margin-top:12px"><input type="checkbox" id="teamChk"${c.passTeam?' checked':''}> Team up against the bots</label>
+       <p class="hint" style="margin:8px 0 0">Share one score and take turns. The four rivals still play. Leave this off to play against each other.</p></div></div>
+      <div class="more-tools">
+        <button type="button" class="btn btn-secondary btn-sm" id="demoBtn" data-act="demo">⏱️ Try a 30-second demo</button>
+        <button type="button" class="btn btn-secondary btn-sm" id="tourneyBtn" data-act="tourney">🏟️ All-modes tournament</button>
+        <button class="btn btn-secondary btn-sm" id="muteBtn" data-act="mute">Sound: ${S.settings.sfx?'on':'off'}</button>
+        <button class="btn btn-secondary btn-sm" id="musicBtn" data-act="music">Music: ${S.settings.music?'on':'off'}</button>
+        <button class="btn btn-secondary btn-sm" id="levelBtn" data-act="levelpractice">Practise by level…</button>
+        ${set?`<button class="btn btn-secondary btn-sm" id="studyBtn" data-act="study">🃏 Study cards (${set.qs.length})</button>`:''}
+        ${(S.weak||[]).length?`<button class="btn btn-secondary btn-sm" id="practiceBtn" data-act="practice">Practise weak spots (${S.weak.length})</button>`:''}
+      </div>
+      ${set?goalBlock(set):''}
+    </div>
+   </section>
+  </div>`;
   const rv=$('details.rivals');if(rv)rv.addEventListener('toggle',()=>{window.__rivOpen=rv.open});
-  $('#nameIn').oninput=e=>{S.name=e.target.value.slice(0,14);save()};
-  const pc=$('#passChk');if(pc)pc.onchange=()=>{S.cfg.passPlay=pc.checked;if(!pc.checked)S.cfg.passTeam=false;save();renderSetup()};
-  const tc=$('#teamChk');if(tc)tc.onchange=()=>{S.cfg.passTeam=tc.checked;save();renderSetup()};
+  const ni=$('#nameIn');if(ni)ni.oninput=e=>{S.name=e.target.value.slice(0,14);save()};
+  const pc=$('#passChk');if(pc)pc.onchange=()=>{S.cfg.passPlay=pc.checked;if(!pc.checked)S.cfg.passTeam=false;window.__moreOpen=true;save();renderSetup()};
+  const tc=$('#teamChk');if(tc)tc.onchange=()=>{S.cfg.passTeam=tc.checked;window.__moreOpen=true;save();renderSetup()};
   const p2=$('#p2Name');if(p2)p2.oninput=e=>{S.p2=S.p2||{emoji:'🐼'};S.p2.name=e.target.value.slice(0,14);save()};
   const si=$('#setSearch');if(si){si.oninput=e=>{FILT.q=e.target.value;renderSetGrid()};renderSetGrid()}
   const g2=$('#setGrid .many');if(g2&&window.__gridScroll)g2.scrollTop=window.__gridScroll;
+  const mb=$('#moreBtn');if(mb)mb.onclick=()=>{window.__moreOpen=!more;renderSetup();const el=$('#moreOpts');if(el&&window.__moreOpen)el.scrollIntoView({block:'nearest'})};
+  const qm=$('#qotdMount');if(qm&&typeof bindQotd==='function')bindQotd(qm);
 }
 function goalBlock(set){const g=starGoal(set);
   if(!g)return `<p class="goal-hint" id="goalHint">★★★ All stars earned on this set. Nicely done!</p>`;
@@ -1243,7 +1268,7 @@ document.addEventListener('click',e=>{
   if(a!=='ans'&&a!=='chest'&&a!=='move'&&a!=='pick'&&a!=='reel'&&a!=='pans'&&a!=='cafe')sfx('click');else audio();
   switch(a){
    case'cfg':{const k=t.dataset.k,v=t.dataset.v;
-     window.__gridScroll=($('#setGrid .many')||{}).scrollTop||0;DAILY=false;WEEK=false;SEASON=false;TOURNEY=false;if(k==='time')S.cfg.time=+v;else if(k==='goal')S.cfg.goal[S.cfg.mode]=+v;else if(k==='hard')S.cfg.hard=v==='1';else S.cfg[k]=v;save();renderSetup();break}
+     window.__gridScroll=($('#setGrid .many')||{}).scrollTop||0;DAILY=false;WEEK=false;SEASON=false;TOURNEY=false;if(['time','goal','diff','hard'].includes(k))window.__moreOpen=true;if(k==='time')S.cfg.time=+v;else if(k==='goal')S.cfg.goal[S.cfg.mode]=+v;else if(k==='hard')S.cfg.hard=v==='1';else S.cfg[k]=v;save();renderSetup();break}
    case'mute':S.settings.sfx=!S.settings.sfx;save();t.textContent='Sound: '+(S.settings.sfx?'on':'off');if(S.settings.sfx)sfx('click');break;
    case'music':S.settings.music=!S.settings.music;save();t.textContent='Music: '+(S.settings.music?'on':'off');if(S.settings.music)audio();break;
    case'fav':{const on=toggleFav(t.dataset.id);toast(on?'Added to favourites':'Removed from favourites');const gs=($('#setGrid .many')||{}).scrollTop||0;renderSetGrid();const g3=$('#setGrid .many');if(g3)g3.scrollTop=gs;break}
