@@ -8,7 +8,7 @@ const ICON={
 /* ---------------- setup ---------------- */
 function params(){try{return new URLSearchParams(location.search)}catch(e){return new URLSearchParams()}}
 const bestFor=id=>{const b=bestOf(id,S.cfg.mode,S.cfg.time,S.cfg.hard,S.settings.noTimer);return b?` · best ${b.score} ${MODES[S.cfg.mode].unit}`:''};
-function renderSetup(){
+function renderSetup(){document.body.classList.remove('playing');
   const c=S.cfg;const sets=S.sets.filter(s=>s.qs&&s.qs.length);
   if(!sets.find(s=>s.id===c.setId))c.setId=sets[0]?sets[0].id:null;
   const m=MODES[c.mode];const set=sets.find(s=>s.id===c.setId);
@@ -373,7 +373,7 @@ function grantLuckyKey(p){
   if(p===G.me){updateKeyPill();toast(p.keys===1?'Lucky key! A dud chest can be rerolled.':'Lucky key banked (max 2).');sfx('coin');live('Lucky key earned.')}}
 function updateStreak(){const p=$('#streakPill');if(!p||!G)return;const n=G.me.streak;$('#streakNum').textContent=n;p.className='stat-pill streak '+(n>=7?'lv3':n>=5?'lv2':n>=3?'lv1':'lv0');if(n>=2){p.classList.add('bump');setTimeout(()=>p.classList.remove('bump'),400)}setFever(n>=5);if(n===5||n===8||n===10){if(G._juiceStreak!==n){G._juiceStreak=n;juiceBanner(n===5?'🔥 ON FIRE!':n===8?'☄️ UNSTOPPABLE!':'🌟 LEGENDARY!','fire');sfx(n===10?'jackpot':'fever')}}else if(n<5)G._juiceStreak=0;if(n>=KEY_EVERY&&n%KEY_EVERY===0)grantLuckyKey(G.me)}
 function stopGame(){if(G){clearInterval(G.timer);save()}clearJuice();G=null;Music.stop();stopSpeak()}
-function renderGameShell(){
+function renderGameShell(){document.body.classList.add('playing');
   const m=MODES[G.mode];
   view.innerHTML=`<div class="hud${G.pass?" pass-hud":""}"><div class="stat-pill"><span>Time</span><b id="clock">${fmt(G.time*1000)}</b></div>
     ${G.tourney?`<div class="stat-pill tourney-pill" id="legPill"><span>Tournament</span><b>Leg ${G.tourney.i+1}/${G.tourney.modes.length}</b></div>`:''}<div class="stat-pill"><span>Mode</span><b style="font-size:15px">${m.name}</b></div>${G.tourney?`<div class="stat-pill" id="tPtsPill"><span>Pts</span><b id="tPts">${G.tourney.pts[G.me.id]||0}</b></div>`:''}${G.autoDiff?`<div class="stat-pill" id="diffPill"><span>Rivals</span><b>Auto · ${G.diff[0].toUpperCase()+G.diff.slice(1)}</b></div>`:''}

@@ -102,7 +102,7 @@ function render(){
   if(MSG){const m=$('#pasteMsg');if(m){m.textContent=MSG.t;m.className='paste-msg '+(MSG.ok?'ok':'no')}}
 }
 function joinBlock(c,link){const svg=qrSvg(link,176);
-  return `<div class="join-block" id="joinBlock">${svg?`<div class="qr-box" id="qrBox">${svg}</div>`:''}<div><b>Join card</b><p class="hint" style="margin:4px 0 10px">${svg?'Students can scan this QR code instead of typing the link. ':'<span id="qrLong">This link is too long for a QR code (a big custom set). Use Copy link instead. </span>'}Print a card to hand out or stick on the board.</p><button class="btn btn-secondary btn-sm" data-act="joincard" id="joinCardBtn">Print join card</button></div></div>`}
+  return `<div class="host-lobby join-block" id="joinBlock">${svg?`<div class="qr-box" id="qrBox">${svg}</div>`:''}<div><p class="lobby-kicker">Students can join</p><p class="lobby-code">${esc(c.k)}</p><p class="hint lobby-copy" style="margin:6px 0 10px">${svg?'Project this code, or let students scan the QR code. ':'<span id="qrLong">This link is too long for a QR code (a big custom set). Use Copy link instead. </span>'}Print a card to hand out or stick on the board.</p><button class="btn btn-secondary btn-sm" data-act="joincard" id="joinCardBtn">Print join card</button></div></div>`}
 function missedPanel(c){const ms=missedStats(c);
   if(!ms.detailed)return `<div class="missed" id="missedPanel"><h2 class="h3" style="margin-top:26px">Most missed questions</h2><p class="muted" id="missedNone">No question detail yet. Codes from sets of up to ${CLASS_QMAX} questions carry it automatically.</p></div>`;
   if(!ms.rows.length)return `<div class="missed" id="missedPanel"><h2 class="h3" style="margin-top:26px">Most missed questions</h2><p class="muted">Nobody has missed a question yet (${ms.detailed} game${ms.detailed===1?'':'s'} checked). Impressive.</p></div>`;
@@ -197,10 +197,10 @@ function detail(c){
   const link=classLink(c),unit=MODES[c.mode].unit,b=boardOf(c);
   return `<div class="class-detail" id="classDetail"><div class="class-meta"><b>${esc(c.name)}</b><span>${esc(c.setTitle)} · ${MODES[c.mode].emoji} ${esc(MODES[c.mode].name)} · ${esc(timeName(c.time))}${c.rules?' · <b class="rules-tag">'+esc(rulesName(c))+'</b>':''} · class code <b class="ck">${esc(c.k)}</b></span></div>
    ${teamBoss(c)}
+   ${joinBlock(c,link)}
    <label class="label" for="classLink">Student link <span class="muted" style="font-weight:400">– send this to your class</span></label>
    <div class="copy-row"><input class="input" id="classLink" readonly value="${esc(link)}"><button class="btn btn-primary" data-act="copylink" id="copyLink">Copy link</button></div>
    ${link.length>2000?`<p class="hint" style="color:var(--coral-d)">This link is long (${link.length} characters) because the set is your own. Some apps may cut it off; a built-in set gives a much shorter link.</p>`:''}
-   ${joinBlock(c,link)}
    <h2 class="h3" style="margin-top:26px">2. Paste result codes</h2>
    <label class="label" for="pasteBox">Paste one or many codes <span class="muted" style="font-weight:400">– any separators, even a whole chat or email</span></label>
    <textarea class="textarea import-area" id="pasteBox" placeholder="QB1.WTIyNn5Bb…"></textarea>

@@ -346,14 +346,15 @@ function confirmBox(title,text,okLabel,onOk,danger=true){
 /* ---------- site chrome: mobile nav + active link ---------- */
 document.addEventListener('DOMContentLoaded',()=>{
   const page=document.body.dataset.page;
-  $$('.nav a[data-nav]').forEach(a=>{if(a.dataset.nav===page)a.setAttribute('aria-current','page')});
+  $$('a[data-nav]').forEach(a=>{if(a.dataset.nav===page)a.setAttribute('aria-current','page')});
   const sb=$('#settingsBtn');if(sb)sb.addEventListener('click',openSettings);
+  const ns=$('#navSettings');if(ns)ns.addEventListener('click',openSettings);
   const tools=document.querySelector('.header-tools');
   if(tools&&!$('#keysBtn')){
     const b=document.createElement('button');b.type='button';b.className='icon-btn keys-btn';b.id='keysBtn';
     b.setAttribute('aria-label','Keyboard shortcuts');b.title='Keyboard shortcuts (?)';
     b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h2M17 10h.01M8 14h8"/></svg>';
-    if(sb)tools.insertBefore(b,sb);else tools.prepend(b);
+    if(sb&&tools.contains(sb))tools.insertBefore(b,sb);else tools.prepend(b);
     b.addEventListener('click',openKeys);
   }
   document.addEventListener('keydown',e=>{
@@ -363,11 +364,13 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(typing)return;
     if(e.key==='?'||(e.key==='/'&&e.shiftKey)){e.preventDefault();const ov=document.querySelector('.overlay');if(ov&&ov.querySelector('.keys-list')){if(ov._close)ov._close();else{if(ov._onClose)try{ov._onClose()}catch(err){}ov._onClose=null;ov.remove()}}else if(!ov)openKeys()}
   });
-  const t=$('#navToggle'),n=$('#nav');
-  if(t&&n){const setNav=on=>{n.classList.toggle('open',on);t.setAttribute('aria-expanded',on?'true':'false');t.setAttribute('aria-label',on?'Close menu':'Open menu')};
-    t.addEventListener('click',()=>setNav(!n.classList.contains('open')));
+  const t=$('#navToggle'),n=$('#nav'),side=$('#sidebar'),bd=$('#navBackdrop');
+  if(t&&n){const isOpen=()=>(side&&side.classList.contains('open'))||n.classList.contains('open');
+    const setNav=on=>{n.classList.toggle('open',on);if(side)side.classList.toggle('open',on);if(bd){bd.hidden=!on;bd.classList.toggle('show',on)}t.setAttribute('aria-expanded',on?'true':'false');t.setAttribute('aria-label',on?'Close menu':'Open menu')};
+    t.addEventListener('click',()=>setNav(!isOpen()));
     n.addEventListener('click',e=>{if(e.target.closest('a'))setNav(false)});
-    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&n.classList.contains('open')){setNav(false);t.focus()}})}
+    if(bd)bd.addEventListener('click',()=>setNav(false));
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&isOpen()){setNav(false);t.focus()}})}
   const y=$('#year');if(y)y.textContent=new Date().getFullYear();
   if(typeof applySeason==='function')applySeason();
   // easter eggs: click the footer logo 5 times, or enter the Konami code

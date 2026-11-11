@@ -172,7 +172,7 @@ function openImport(){
 function renderList(){
   history.replaceState(null,'',location.pathname);
   E=null;
-  view.innerHTML=`<div class="page-head"><h1>Your <span class="hl">question sets</span></h1><p>Where the brain-busters live. Saved in this browser, so no one else can peek at your answers.</p></div>
+  view.innerHTML=`<div class="page-head"><h1><span class="hl">Discover</span> sets</h1><p>Browse the library, star a favourite, or make your own. Everything stays in this browser.</p></div>
   <div class="page-body"><div class="toolbar"><button class="btn btn-primary" data-act="newset" id="newSetBtn">+ New question set</button>
    <button class="btn btn-secondary" data-act="import" id="importBtn">Import</button><button class="btn btn-secondary" data-act="exportall" id="exportAllBtn" ${S.sets.length?'':'disabled'}>Export all</button><button class="btn btn-secondary" data-act="restore">Restore sample sets</button><button class="btn btn-secondary" data-act="backup" id="backupBtn2">Backup &amp; restore</button><div class="sp"></div><span class="muted">${S.sets.length} set${S.sets.length===1?'':'s'}</span></div>
   ${S.sets.length?`<div class="set-tools"><label class="sr-only" for="listSearch">Search question sets</label><input class="input" id="listSearch" type="search" placeholder="Search ${S.sets.length} sets…" value="${esc(FILT.q)}" autocomplete="off"></div><div class="chips" id="listChips" role="group" aria-label="Filter sets by category"></div><div id="setList"></div>`
@@ -183,7 +183,7 @@ function typeMix(s){const n=k=>s.qs.filter(q=>qType(q)===k).length,p=s.qs.filter
 function renderRows(){
   const ch=$('#listChips');if(!ch)return;ch.innerHTML=chipsHTML(S.sets);const list=filterSets(S.sets);
   $('#setList').innerHTML=list.length?`<div class="set-list">${list.map((s,i)=>{const f=isFav(s.id);return `<div class="set-row" data-id="${esc(s.id)}"><span class="set-emoji" aria-hidden="true" style="background:${SET_COLORS[i%SET_COLORS.length]}">${s.emoji||SET_EMOJI[i%SET_EMOJI.length]}</span><div class="info"><b>${esc(s.title)}${s.builtin?'<span class="tag">Sample</span>':''}<span class="tag cat">${esc(catOf(s))}</span></b><span>${s.qs.length} question${s.qs.length===1?'':'s'}${typeMix(s)} ${starsHTML(s)}</span></div>
-    <button type="button" class="star ${f?'on':''}" data-act="fav" data-id="${esc(s.id)}" aria-pressed="${f}" aria-label="${f?'Remove':'Add'} ${esc(s.title)} ${f?'from':'to'} favourites" title="${f?'Unfavourite':'Favourite'}">${f?'★':'☆'}</button>
+    <div class="set-acts"><button type="button" class="star ${f?'on':''}" data-act="fav" data-id="${esc(s.id)}" aria-pressed="${f}" aria-label="${f?'Remove':'Add'} ${esc(s.title)} ${f?'from':'to'} favourites" title="${f?'Unfavourite':'Favourite'}">${f?'★':'☆'}</button>
     <a class="btn btn-primary btn-sm" href="play.html?set=${encodeURIComponent(s.id)}">Play</a>
     <a class="btn btn-secondary btn-sm" href="play.html?study=${encodeURIComponent(s.id)}">Study</a>
     <button class="btn btn-secondary btn-sm" data-act="editset" data-id="${esc(s.id)}">Edit</button>
@@ -191,7 +191,7 @@ function renderRows(){
     <button class="btn btn-secondary btn-sm" data-act="exportset" data-id="${esc(s.id)}">Export</button>
     <button class="btn btn-secondary btn-sm" data-act="shareset" data-id="${esc(s.id)}">Share</button>
     <button class="btn btn-secondary btn-sm" data-act="printset" data-id="${esc(s.id)}">Print</button>
-    <button class="btn btn-danger btn-sm" data-act="delset" data-id="${esc(s.id)}">Delete</button></div>`}).join('')}</div>`
+    <button class="btn btn-danger btn-sm" data-act="delset" data-id="${esc(s.id)}">Delete</button></div></div>`}).join('')}</div>`
    :emptyHTML({small:true,mascot:false,body:'No sets match'+(FILT.q?' “'+esc(FILT.q)+'”':' that filter')+'.',cta:'<button class="btn btn-secondary btn-sm" data-act="fclear">Clear filters</button>'})}
 
 function renderEdit(id){

@@ -39,17 +39,28 @@
 <meta name="apple-mobile-web-app-title" content="QuizBlox">
 <link rel="stylesheet" href="css/styles.css">
 </head>
-<body data-page="lost">
+<body class="app-shell" data-page="lost">
 <a class="skip-link" href="#main">Skip to content</a>
-<header class="site-header"><div class="container header-in">
+<aside class="app-sidebar" id="sidebar">
   <a class="brand" href="index.html" aria-label="QuizBlox home"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#5b4cf0"/><rect x="7" y="7" width="8" height="8" rx="2" fill="#fff"/><rect x="17" y="7" width="8" height="8" rx="2" fill="#fff" opacity=".6"/><rect x="7" y="17" width="8" height="8" rx="2" fill="#fff" opacity=".6"/><rect x="17" y="17" width="8" height="8" rx="2" fill="#ffcf3f"/></svg><span>QuizBlox</span></a>
-  <div class="header-tools"><button class="icon-btn" id="settingsBtn" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg></button>
-  <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14"/></svg></button></div>
   <nav class="nav" id="nav" aria-label="Main">
-    <a href="play.html" data-nav="play">Play</a><a href="sets.html" data-nav="sets">Sets</a><a href="stats.html" data-nav="stats">Stats</a><a href="teacher.html" data-nav="teacher">Class</a>
+    <a href="index.html" data-nav="home"><span class="nav-ico" aria-hidden="true">🗺️</span><span>Map</span></a>
+    <a href="sets.html" data-nav="sets"><span class="nav-ico" aria-hidden="true">📚</span><span>Discover sets</span></a>
+    <a href="play.html" data-nav="play"><span class="nav-ico" aria-hidden="true">▶️</span><span>Play</span></a>
+    <a href="stats.html" data-nav="stats"><span class="nav-ico" aria-hidden="true">📊</span><span>Stats</span></a>
+    <a href="teacher.html" data-nav="teacher"><span class="nav-ico" aria-hidden="true">🏫</span><span>Class</span></a>
+    <button type="button" class="nav-settings" id="navSettings" aria-label="Settings" title="Settings"><span class="nav-ico" aria-hidden="true">⚙️</span><span>Settings</span></button>
   </nav>
-</div></header>
+</aside>
+<div class="nav-backdrop" id="navBackdrop" hidden></div>
+<div class="app-frame">
+<header class="app-topbar">
+  <a class="brand" href="index.html" aria-label="QuizBlox home"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#5b4cf0"/><rect x="7" y="7" width="8" height="8" rx="2" fill="#fff"/><rect x="17" y="7" width="8" height="8" rx="2" fill="#fff" opacity=".6"/><rect x="7" y="17" width="8" height="8" rx="2" fill="#fff" opacity=".6"/><rect x="17" y="17" width="8" height="8" rx="2" fill="#ffcf3f"/></svg><span>QuizBlox</span></a>
+  <div class="header-tools"><button class="icon-btn" id="settingsBtn" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1-.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg></button><button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14"/></svg></button>
+  </div>
+</header>
 <main id="main" tabindex="-1">
+
 <section class="lost-page"><div class="container">
   <p class="eyebrow">404</p>
   <h1>This page took a <span class="hl">wrong turn.</span></h1>
@@ -62,10 +73,19 @@
   <div class="foot-grid">
     <div><a class="brand" href="index.html"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#5b4cf0"/><rect x="7" y="7" width="8" height="8" rx="2" fill="#fff"/><rect x="17" y="7" width="8" height="8" rx="2" fill="#fff" opacity=".6"/><rect x="7" y="17" width="8" height="8" rx="2" fill="#fff" opacity=".6"/><rect x="17" y="17" width="8" height="8" rx="2" fill="#ffcf3f"/></svg><span>QuizBlox</span></a>
       <p class="muted" style="margin-top:12px;max-width:360px">A free quiz game for classroom review. Runs entirely in your browser: no accounts, no tracking, no sudden pop-ups. Not responsible for outbreaks of enthusiasm.</p></div>
-    <div><h4>Play</h4><ul><li><a href="play.html">Play</a></li><li><a href="sets.html">Sets</a></li><li><a href="sets.html#new">Create a set</a></li><li><a href="stats.html">Stats</a></li><li><a href="teacher.html">Class</a></li></ul></div>
+    <div><h4>Play</h4><ul><li><a href="play.html">Play</a></li><li><a href="sets.html">Discover sets</a></li><li><a href="sets.html#new">Create a set</a></li><li><a href="stats.html">Stats</a></li><li><a href="teacher.html">Class</a></li></ul></div>
   </div>
   <div class="foot-bottom"><button type="button" class="btn btn-secondary btn-sm" id="installBtn" hidden>Install QuizBlox as an app</button>&copy; <span id="year">2026</span> QuizBlox. Your question sets live in your browser, safe and snug.</div>
 </div></footer>
+</div>
+<nav class="app-tabbar" aria-label="Primary">
+  <a href="index.html" data-nav="home"><span class="nav-ico" aria-hidden="true">🗺️</span><span>Map</span></a>
+  <a href="sets.html" data-nav="sets"><span class="nav-ico" aria-hidden="true">📚</span><span>Discover</span></a>
+  <a href="play.html" data-nav="play"><span class="nav-ico" aria-hidden="true">▶️</span><span>Play</span></a>
+  <a href="stats.html" data-nav="stats"><span class="nav-ico" aria-hidden="true">📊</span><span>Stats</span></a>
+  <a href="teacher.html" data-nav="teacher"><span class="nav-ico" aria-hidden="true">🏫</span><span>Class</span></a>
+</nav>
+
 <script src="js/samples.js"></script>
 <script src="js/qtypes.js"></script>
 <script src="js/common.js"></script>
